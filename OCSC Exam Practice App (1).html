@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเตรียมสอบ ก.พ. ภาค ก. (ระดับปริญญาตรี) ออนไลน์</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        ocsc: {
+                            green: '#059669',
+                            gold: '#d97706',
+                            red: '#e11d48'
+                        }
+                    },
+                    fontFamily: {
+                        prompt: ['Prompt', 'sans-serif'],
+                        sarabun: ['Sarabun', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Prompt & Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Canvas Confetti for Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            color: #1e293b;
+        }
+        h1, h2, h3, h4, h5, h6, .font-heading {
+            font-family: 'Prompt', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased bg-slate-50 text-slate-800 selection:bg-brand-500 selection:text-white">
+
+    <!-- MAIN CONTAINER -->
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <!-- HEADER / NAVIGATION BAR -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="app.showHome()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="font-heading font-bold text-lg text-slate-900 leading-none">OCSC Prep</h1>
+                            <span class="bg-brand-100 text-brand-800 text-xs font-semibold px-2 py-0.5 rounded-full font-heading">ภาค ก. ป.ตรี</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">ระบบฝึกทำข้อสอบ ก.พ. ออนไลน์ครบวงจร</p>
+                    </div>
+                </div>
+
+                <div id="header-actions" class="flex items-center space-x-3">
+                    <button onclick="app.resetStatsModal()" class="text-xs text-slate-600 hover:text-brand-600 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition">
+                        <i class="fa-solid fa-chart-line mr-1"></i> ประวัติผลสอบ
+                    </button>
+                    <a href="https://job.ocsc.go.th" target="_blank" class="hidden sm:inline-flex items-center text-xs text-slate-500 hover:text-slate-700 font-medium px-2 py-1">
+                        <i class="fa-solid fa-external-link mr-1"></i> เว็บไซต์ ก.พ.
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- DYNAMIC VIEW CONTAINER -->
+        <main id="main-content" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Views will be injected here via JavaScript -->
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+            <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+                <p>© 2026 OCSC Exam Practice Platform (ภาค ก. ระดับปริญญาตรี) • อัปเดตตามเกณฑ์ ก.พ. ล่าสุด</p>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODAL CONTAINER -->
+    <div id="modal-root"></div>
+
+    <!-- SCRIPT APPLICATION CODE -->
+    <script>
+        /**
+         * OCSC QUESTION BANK (24 High Quality Questions: 8 per subject)
+         * Subject 1: ความสามารถในการคิดวิเคราะห์ (Threshold 60%)
+         * Subject 2: วิชาภาษาอังกฤษ (Threshold 50%)
+         * Subject 3: วิชาความรู้และลักษณะการเป็นข้าราชการที่ดี (Threshold 60%)
+         */
+        const OCSC_QUESTIONS = [
+            // ==================== SUBJECT 1: คิดวิเคราะห์ (8 ข้อ) ====================
+            {
+                id: 101,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "อนุกรม",
+                question: "จงหาตัวเลขถัดไปของอนุกรมชุดนี้: 3, 7, 15, 31, 63, ...",
+                choices: ["125", "127", "128", "131"],
+                answer: 1, // 127
+                explanation: "วิเคราะห์รูปแบบอนุกรม:\n3 (+4) -> 7 (+8) -> 15 (+16) -> 31 (+32) -> 63 (+64)\nระยะห่างบวกเพิ่มเป็น 2 เท่าเสมอ (+4, +8, +16, +32, +64)\nดังนั้น เลขถัดไปคือ 63 + 64 = 127\n(หรือใช้สูตร ลำดับถัดไป = (ตัวหน้า × 2) + 1 เช่น (63 × 2) + 1 = 127)"
+            },
+            {
+                id: 102,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "อนุกรม",
+                question: "จงหาตัวเลขถัดไปของอนุกรมชุดนี้: 2, 6, 12, 20, 30, 42, ...",
+                choices: ["52", "54", "56", "60"],
+                answer: 2, // 56
+                explanation: "วิเคราะห์ระยะห่างของอนุกรม:\n2 (+4) -> 6 (+6) -> 12 (+8) -> 20 (+10) -> 30 (+12) -> 42 (+14)\nระยะห่างเพิ่มขึ้นทีละ +2 (4, 6, 8, 10, 12, 14)\nดังนั้น ตัวเลขถัดไปคือ 42 + 14 = 56"
+            },
+            {
+                id: 103,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "คณิตศาสตร์ทั่วไป (บัญญัติไตรยางค์)",
+                question: "คนงานชาย 8 คน ช่วยกันสร้างกระท่อมเสร็จในเวลา 15 วัน ถ้าต้องการให้งานสร้างกระท่อมชิ้นเดียวกันนี้เสร็จสิ้นภายใน 6 วัน จะต้องใช้คนงานชายทั้งหมดกี่คน?",
+                choices: ["16 คน", "18 คน", "20 คน", "24 คน"],
+                answer: 2, // 20 คน
+                explanation: "โจทย์นี้เป็นเรื่อง **บัญญัติไตรยางค์ผกผัน** (ยิ่งเพิ่มคน เวลาทำงานยิ่งลดลง)\n• ปริมาณงานทั้งหมด = 8 คน × 15 วัน = 120 คน-วัน\n• ต้องการทำงานให้เสร็จใน 6 วัน\n• จำนวนคนงานที่ต้องใช้ = 120 ÷ 6 = 20 คน"
+            },
+            {
+                id: 104,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "คณิตศาสตร์ทั่วไป (ร้อยละ/กำไรขาดทุน)",
+                question: "ร้านค้าปิดราคาขายเครื่องใช้ไฟฟ้าไว้ที่ 4,500 บาท โดยได้กำไร 25% อยากทราบว่าต้นทุนแท้จริงของเครื่องใช้ไฟฟ้านี้คือเท่าใด?",
+                choices: ["3,375 บาท", "3,500 บาท", "3,600 บาท", "3,750 บาท"],
+                answer: 2, // 3,600 บาท
+                explanation: "สูตรการหาต้นทุนเมื่อรู้เปอร์เซ็นต์กำไร:\nราคาขาย = ต้นทุน × (100 + %กำไร) / 100\n4,500 = ต้นทุน × (125 / 100)\nต้นทุน = 4,500 × 100 / 125 = 3,600 บาท"
+            },
+            {
+                id: 105,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "เงื่อนไขสัญลักษณ์",
+                question: "กำหนดเงื่อนไข: A > B = C ≤ D และ E < B\nข้อสรุปใดต่อไปนี้ **เป็นจริง** ตามหลักเหตุผล?",
+                choices: ["A > C", "D < B", "E > C", "A = D"],
+                answer: 0, // A > C
+                explanation: "พิจารณาเงื่อนไขทีละข้อ:\n1. จาก A > B และ B = C จะได้ว่า A > C (ข้อสรุปที่ 1 จึงเป็นจริงแน่แท้)\n2. จาก B = C ≤ D จะได้ว่า B ≤ D ดังนั้น D < B เป็นเท็จ\n3. จาก E < B และ B = C จะได้ว่า E < C ดังนั้น E > C เป็นเท็จ"
+            },
+            {
+                id: 106,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "อุปมาอุปไมย",
+                question: "จงเลือกคู่คำที่มีความสัมพันธ์เหมือนคู่คำแรก: **หมอ : โรงพยาบาล :: ? : ?**",
+                choices: ["ครู : โรงเรียน", "ผู้พิพากษา : กฎหมาย", "วิศวกร : แบบแปลน", "ตำรวจ : ปืน"],
+                answer: 0, // ครู : โรงเรียน
+                explanation: "ความสัมพันธ์คือ **[อาชีพ : สถานที่ปฏิบัติงานหลัก]**\n• หมอ ทำงานที่ โรงพยาบาล\n• ครู ทำงานที่ โรงเรียน"
+            },
+            {
+                id: 107,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "การเรียงลำดับประโยคภาษาไทย",
+                question: "จงเรียงลำดับข้อความต่อไปนี้ให้ถูกต้องเป็นบทความที่สมบูรณ์:\n(ก) ส่งผลให้เกิดปัญหามลพิษทางอากาศตามมาอย่างหลีกเลี่ยงไม่ได้\n(ข) การขยายตัวของชุมชนเมืองอย่างรวดเร็วในปัจจุบัน\n(ค) ซึ่งทุกภาคส่วนต้องร่วมมือกันแก้ไขอย่างจริงจัง\n(ง) ทำให้มีการใช้รถยนต์ส่วนบุคคลเพิ่มมากขึ้นอย่างต่อเนื่อง",
+                choices: ["(ข) -> (ง) -> (ก) -> (ค)", "(ข) -> (ก) -> (ง) -> (ค)", "(ง) -> (ข) -> (ก) -> (ค)", "(ก) -> (ข) -> (ง) -> (ค)"],
+                answer: 0, // (ข) -> (ง) -> (ก) -> (ค)
+                explanation: "การเรียงลำดับประโยค:\n1. เริ่มต้นด้วยเหตุปัจจัยหลัก: (ข) การขยายตัวของชุมชนเมือง...\n2. ผลกระทบอันดับแรก: (ง) ทำให้มีการใช้รถยนต์เพิ่มมากขึ้น...\n3. ผลกระทบต่อเนื่อง: (ก) ส่งผลให้เกิดปัญหามลพิษ...\n4. ข้อสรุป/แนวทางแก้ไข: (ค) ซึ่งทุกภาคส่วนต้องร่วมมือกัน..."
+            },
+            {
+                id: 108,
+                subjectId: 1,
+                subjectName: "ความสามารถในการคิดวิเคราะห์",
+                topic: "การสรุปความจากบทความ",
+                question: "\"การออกกำลังกายอย่างสม่ำเสมอนอกจากจะช่วยเสริมสร้างภูมิคุ้มกันร่างกายแล้ว ยังช่วยลดความเครียดและกระตุ้นการหลั่งสารเอนดอร์ฟิน ซึ่งส่งผลดีต่อสุขภาพจิตโดยตรง\"\nข้อใดคือประเด็นสำคัญที่สุดของข้อความนี้?",
+                choices: [
+                    "การออกกำลังกายช่วยรักษาโรคภูมิแพ้ได้ดีที่สุด",
+                    "สารเอนดอร์ฟินลดความเครียดได้มากกว่ายา",
+                    "การออกกำลังกายส่งผลดีต่อทั้งสุขภาพกายและสุขภาพจิต",
+                    "ผู้ที่มีความเครียดควรออกกำลังกายเฉพาะเวลาเย็น"
+                ],
+                answer: 2, // สุขภาพกายและจิต
+                explanation: "บทความกล่าวถึงทั้งผลดีด้านร่างกาย (เสริมภูมิคุ้มกัน) และผลดีด้านจิตใจ (ลดเครียด/กระตุ้นเอนดอร์ฟิน) ดังนั้นประเด็นครอบคลุมที่สุดคือการส่งผลดีต่อทั้งสุขภาพกายและสุขภาพจิต"
+            },
+
+            // ==================== SUBJECT 2: ภาษาอังกฤษ (8 ข้อ) ====================
+            {
+                id: 201,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Conversation",
+                question: "Situation: At the office.\nJohn: \"Would you mind helping me move this heavy desk?\"\nSarah: \"__________. I'm free right now.\"",
+                choices: [
+                    "Yes, I would",
+                    "Not at all",
+                    "Never mind",
+                    "You're welcome"
+                ],
+                answer: 1, // Not at all
+                explanation: "เมื่อถูกถามด้วยโครงสร้าง \"Would you mind...?\" (คุณจะรังเกียจไหมถ้า...)\nหากยินดีช่วย ต้องตอบปฏิเสธความรังเกียจ เช่น \"Not at all\" (ไม่รังเกียจเลยครับ/ค่ะ) หรือ \"Of course not\""
+            },
+            {
+                id: 202,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Vocabulary in Context",
+                question: "The committee decided to **postpone** the annual conference due to unforeseen technical difficulties.",
+                choices: ["cancel", "delay", "organize", "attend"],
+                answer: 1, // delay
+                explanation: "คำว่า **postpone** (verb) แปลว่า เลื่อนเวลาออกไป ซึ่งมีความหมายเหมือนกับคำว่า **delay** หรือ **put off**"
+            },
+            {
+                id: 203,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Grammar - Tense",
+                question: "By the time the manager arrived at the conference room yesterday, the meeting __________.",
+                choices: [
+                    "has already started",
+                    "had already started",
+                    "was starting",
+                    "will start"
+                ],
+                answer: 1, // had already started
+                explanation: "ใช้โครงสร้าง **Past Perfect (had + V.3)** ควบคู่กับ Past Simple เมื่อมีเหตุการณ์ในอดีตเกิดขึ้นและจบลงก่อนอีกเหตุการณ์หนึ่งในอดีต (By the time + Past Simple, Past Perfect)"
+            },
+            {
+                id: 204,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Grammar - Conditionals (If-Clause)",
+                question: "If the applicant __________ more experience in project management, he would be selected for the position.",
+                choices: ["has", "had", "had had", "will have"],
+                answer: 1, // had
+                explanation: "เป็นประโยคเงื่อนไข If-Clause Type 2 (สมมติสิ่งที่ไม่เป็นจริงในปัจจุบัน)\nโครงสร้าง: **If + Subject + Past Simple (V.2), Subject + would + V.inf**\nดังนั้นประธานต้องคู่กับ V.2 นั่นคือ **had**"
+            },
+            {
+                id: 205,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Grammar - Prepositions",
+                question: "The government official is responsible __________ coordinating public welfare projects in the province.",
+                choices: ["with", "for", "in", "to"],
+                answer: 1, // for
+                explanation: "คำคุณศัพท์ **responsible** จะใช้คู่กับบุพบท **for** เสมอ (be responsible for = มีหน้าที่รับผิดชอบในเรื่อง...)"
+            },
+            {
+                id: 206,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Grammar - Subject-Verb Agreement",
+                question: "Neither the director nor his assistants __________ available to answer questions at the moment.",
+                choices: ["is", "are", "was", "be"],
+                answer: 1, // are
+                explanation: "หลัก Subject-Verb Agreement สำหรับโครงสร้าง **Neither... nor...** ให้กริยาผันตามคำนามที่อยู่ **ใกล้กริยาที่สุด** ในที่นี้คือ \"his assistants\" (พหูพจน์) + ปัจจุบัน (at the moment) จึงต้องใช้ **are**"
+            },
+            {
+                id: 207,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Reading Comprehension",
+                question: "Passage: \"Remote work has experienced unprecedented growth in recent years. While employees enjoy greater flexibility and eliminated commute times, organization leaders express concerns regarding team cohesion and information security.\"\n\nQuestion: According to the passage, what is a primary concern for organizational leaders regarding remote work?",
+                choices: [
+                    "High commute expenses",
+                    "Lack of employee flexibility",
+                    "Team cohesion and data security",
+                    "Decreased technical performance"
+                ],
+                answer: 2, // Team cohesion and data security
+                explanation: "จากบทความระบุชัดเจนว่า: \"...leaders express concerns regarding team cohesion and information security.\" (ผู้นำองค์กรมีความกังวลเกี่ยวกับความแน่นแฟ้นของทีมและความปลอดภัยของข้อมูล)"
+            },
+            {
+                id: 208,
+                subjectId: 2,
+                subjectName: "วิชาภาษาอังกฤษ",
+                topic: "Vocabulary - Antonym",
+                question: "Select the word that is **OPPOSITE** in meaning to the bold word: \"The applicant gave a very **vague** answer during the interview.\"",
+                choices: ["clear", "ambiguous", "confusing", "careless"],
+                answer: 0, // clear
+                explanation: "คำว่า **vague** แปลว่า เครือคลุม/ไม่ชัดเจน คำที่มีความหมายตรงข้าม (Antonym) คือคำว่า **clear** (ชัดเจน)"
+            },
+
+            // ==================== SUBJECT 3: ข้าราชการที่ดี & กฎหมาย ก.พ. (8 ข้อ) ====================
+            {
+                id: 301,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน พ.ศ. 2534",
+                question: "การจัดตั้ง ยุบ หรือเปลี่ยนเขตพื้นที่ของ \"จังหวัด\" ต้องตราขึ้นเป็นกฎหมายระดับใด?",
+                choices: [
+                    "พระราชบัญญัติ",
+                    "พระราชกฤษฎีกา",
+                    "กฎกระทรวง",
+                    "ประกาศกระทรวงมหาดไทย"
+                ],
+                answer: 0, // พระราชบัญญัติ
+                explanation: "ตาม พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน พ.ศ. 2534 มาตรา 52 กำหนดให้การจัดตั้ง ยุบ และเปลี่ยนเขตจังหวัด ต้องตราเป็น **พระราชบัญญัติ** (ส่วนการจัดตั้ง ยุบ อำเภอ ให้ตราเป็นพระราชกฤษฎีกา)"
+            },
+            {
+                id: 302,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.ฎ. ว่าด้วยหลักเกณฑ์และวิธีการบริหารกิจการบ้านเมืองที่ดี พ.ศ. 2546",
+                question: "เป้าหมายสูงสุดของการบริหารกิจการบ้านเมืองที่ดี (Good Governance) ตามพระราชกฤษฎีกานี้คือข้อใด?",
+                choices: [
+                    "เกิดประโยชน์สุขของประชาชน",
+                    "เกิดผลสัมฤทธิ์ต่อภารกิจของรัฐ",
+                    "มีประสิทธิภาพและความคุ้มค่าในเชิงภารกิจ",
+                    "ไม่มีขั้นตอนการปฏิบัติงานเกินความจำเป็น"
+                ],
+                answer: 0, // ประโยชน์สุขของประชาชน
+                explanation: "ตามมาตรา 6 แห่ง พ.ร.ฎ. บริหารกิจการบ้านเมืองที่ดี พ.ศ. 2546 เป้าหมายอันดับที่ 1 และเป็นเป้าหมายสูงสุดของการบริหารราชการเพื่อประโยชน์สุขของประชาชน"
+            },
+            {
+                id: 303,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.บ. วิธีปฏิบัติราชการทางปกครอง พ.ศ. 2539",
+                question: "คำสั่งทางปกครองที่ทำเป็นหนังสือ โดยหลักทั่วไปจะต้องระบุรายละเอียดสำคัญข้อใดบ้าง?",
+                choices: [
+                    "วัน เดือน ปี เหตุผล ชื่อและตำแหน่งของผู้ทำคำสั่ง พร้อมลายมือชื่อ",
+                    "ระบุเฉพาะคำวินิจฉัยและลายมือชื่อก็เพียงพอ",
+                    "ระบุเฉพาะเหตุผลทางข้อกฎหมายเท่านั้น",
+                    "ระบุวันเดือนปีและตราประทับประจำตำแหน่งโดยไม่ต้องมีลายมือชื่อ"
+                ],
+                answer: 0, // วัน เดือน ปี เหตุผล ชื่อและตำแหน่ง...
+                explanation: "ตามมาตรา 37 แห่ง พ.ร.บ. วิธีปฏิบัติราชการทางปกครอง พ.ศ. 2539 คำสั่งทางปกครองที่เป็นหนังสือต้องจัดให้มีเหตุผล และระบุวัน เดือน ปี ชื่อและตำแหน่งของผู้ทำคำสั่ง พร้อมทั้งมีลายมือชื่อของผู้ทำคำสั่งนั้น"
+            },
+            {
+                id: 304,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.บ. ความรับผิดทางละเมิดของเจ้าหน้าที่ พ.ศ. 2539",
+                question: "หากเจ้าหน้าที่กระทำละเมิดต่อบุคคลภายนอกในการปฏิบัติหน้าที่ หน่วยงานของรัฐจะเรียกให้เจ้าหน้าที่ผู้ทำละเมิดชดใช้ค่าสินไหมทดแทน (ไล่เบี้ย) ได้ในกรณีใด?",
+                choices: [
+                    "กระทำด้วยความประมาทเลินเล่อทั่วไป",
+                    "กระทำโดยจงใจ หรือประมาทเลินเล่ออย่างร้ายแรง",
+                    "กระทำละเมิดทุกกรณีโดยไม่มีข้อเว้น",
+                    "กระทำตามคำสั่งของผู้บังคับบัญชาที่ชอบด้วยกฎหมาย"
+                ],
+                answer: 1, // จงใจ หรือประมาทเลินเล่ออย่างร้ายแรง
+                explanation: "ตามมาตรา 8 แห่ง พ.ร.บ. ความรับผิดทางละเมิดของเจ้าหน้าที่ พ.ศ. 2539 หน่วยงานของรัฐมีสิทธิเรียกให้เจ้าหน้าที่ชดใช้ค่าสินไหมทดแทนได้ ต่อเมื่อเจ้าหน้าที่ได้กระทำด้วย **ความจงใจ หรือประมาทเลินเล่ออย่างร้ายแรง** เท่านั้น"
+            },
+            {
+                id: 305,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.บ. มาตรฐานทางจริยธรรม พ.ศ. 2562",
+                question: "ข้อใด **ไม่ใช่** หนึ่งในมาตรฐานทางจริยธรรมหลัก 7 ประการของเจ้าหน้าที่ของรัฐ?",
+                choices: [
+                    "ยึดมั่นในสถาบันหลักของประเทศ",
+                    "ซื่อสัตย์สุจริต มีจิตสำนึกที่ดี และรับผิดชอบต่อหน้าที่",
+                    "แสวงหาผลประโยชน์ส่วนตนโดยอาศัยตำแหน่งหน้าที่",
+                    "กล้าตัดสินใจและทำในสิ่งที่ถูกต้องชอบธรรม"
+                ],
+                answer: 2, // แสวงหาผลประโยชน์ส่วนตน
+                explanation: "มาตรฐานทางจริยธรรมต้อง \"ธำรงตนไม่แสวงหาประโยชน์มิชอบ\" ดังนั้นข้อที่ระบุว่า \"แสวงหาผลประโยชน์ส่วนตน\" จึงขัดต่อมาตรฐานทางจริยธรรมอย่างชัดเจน"
+            },
+            {
+                id: 306,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "ประมวลกฎหมายอาญา - ความผิดต่อตำแหน่งหน้าที่ราชการ",
+                question: "เจ้าพนักงานมีหน้าที่ซื้อ ทำ จัดการหรือรักษาทรัพย์ใด เบียดบังทรัพย์นั้นเป็นของตนเองโดยทุจริต มีความผิดตามประมวลกฎหมายอาญามาตรา 147 (ยักยอกทรัพย์หลวง) ต้องระวางโทษอย่างไร?",
+                choices: [
+                    "จำคุกตั้งแต่ 5 ปี ถึง 20 ปี หรือจำคุกตลอดชีวิต",
+                    "จำคุกไม่เกิน 3 ปี หรือปรับไม่เกิน 60,000 บาท",
+                    "ปรับเฉพาะมูลค่าทรัพย์สินที่เบียดบังไป",
+                    "ภาคทัณฑ์และตัดเงินเดือน"
+                ],
+                answer: 0, // จำคุก 5-20 ปี หรือตลอดชีวิต
+                explanation: "ตามประมวลกฎหมายอาญา มาตรา 147 ความผิดฐานยักยอกทรัพย์หลวง ถือเป็นความผิดร้ายแรง มีโทษจำคุกตั้งแต่ 5 ปี ถึง 20 ปี หรือจำคุกตลอดชีวิต และปรับตั้งแต่ 100,000 บาท ถึง 400,000 บาท"
+            },
+            {
+                id: 307,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน พ.ศ. 2534",
+                question: "การมอบอำนาจปฏิบัติราชการแทนตามกฎหมายว่าด้วยระเบียบบริหารราชการแผ่นดิน ต้องทำเป็นรูปแบบใด?",
+                choices: [
+                    "ทำเป็นหนังสือ",
+                    "ทำเป็นวาจาต่อหน้าผู้ดำรงตำแหน่ง",
+                    "ทำเป็นประกาศกระทรวง",
+                    "ทำเป็นพระราชกฤษฎีกา"
+                ],
+                answer: 0, // ทำเป็นหนังสือ
+                explanation: "ตามมาตรา 38 แห่ง พ.ร.บ. ระเบียบบริหารราชการแผ่นดิน พ.ศ. 2534 กำหนดให้การมอบอำนาจปฏิบัติราชการแทน **ต้องทำเป็นหนังสือ**"
+            },
+            {
+                id: 308,
+                subjectId: 3,
+                subjectName: "ความรู้และลักษณะการเป็นข้าราชการที่ดี",
+                topic: "พ.ร.ฎ. ว่าด้วยหลักเกณฑ์และวิธีการบริหารกิจการบ้านเมืองที่ดี พ.ศ. 2546",
+                question: "เมื่อส่วนราชการจัดทำแผนปฏิบัติราชการประจำปีแล้ว และได้รับการอนุมัติงบประมาณ ต้องปฏิบัติตามแผนอย่างไร?",
+                choices: [
+                    "ต้องปฏิบัติให้บรรลุเป้าหมายของแผนงาน และประเมินผลสัมฤทธิ์อย่างเป็นระบบ",
+                    "สามารถยกเลิกแผนงานได้ทันทีหากหัวหน้าหน่วยงานเปลี่ยนคน",
+                    "ไม่ต้องประเมินผลหากใช้วงเงินงบประมาณไม่เกิน 1 ล้านบาท",
+                    "ส่งมอบภารกิจให้เอกชนดำเนินการแทนทั้งหมด"
+                ],
+                answer: 0, // ปฏิบัติให้บรรลุเป้าหมายและประเมินผล
+                explanation: "ตาม พ.ร.ฎ. บริหารบ้านเมืองที่ดี เมื่อได้รับการอนุมัติงบประมาณแล้ว ส่วนราชการมีหน้าที่ต้องดำเนินการให้บรรลุเป้าหมาย และติดตามประเมินผลการปฏิบัติราชการตามหลักเกณฑ์ที่กำหนด"
+            }
+        ];
+
+        /**
+         * OCSC EVALUATION CRITERIA
+         */
+        const OCSC_CRITERIA = {
+            1: { name: "คิดวิเคราะห์", passPercent: 60, title: "ความสามารถในการคิดวิเคราะห์" },
+            2: { name: "ภาษาอังกฤษ", passPercent: 50, title: "วิชาภาษาอังกฤษ" },
+            3: { name: "ข้าราชการที่ดี", passPercent: 60, title: "ความรู้และลักษณะการเป็นข้าราชการที่ดี" }
+        };
+
+        /**
+         * APP STATE & ENGINE
+         */
+        class OCSCApp {
+            constructor() {
+                this.currentMode = 'home'; // 'home', 'exam', 'result'
+                this.examModeType = 'mock'; // 'mock' or 'practice'
+                this.selectedSubjectId = null; // 1, 2, 3 if practice
+                
+                // Active Exam State
+                this.activeQuestions = [];
+                this.userAnswers = {}; // { questionId: choiceIndex }
+                this.flaggedQuestions = new Set(); // Set of questionIds
+                this.currentIndex = 0;
+                
+                // Timer
+                this.timerInterval = null;
+                this.timeLeftSeconds = 0;
+                this.totalExamTimeSeconds = 0;
+                
+                // Review filter
+                this.reviewFilter = 'all'; // 'all', 'wrong', 'flagged'
+
+                // Stats storage key
+                this.STORAGE_KEY = 'ocsc_exam_history_v2';
+            }
+
+            init() {
+                this.showHome();
+                this.attachGlobalKeyboardListeners();
+            }
+
+            // --- LOCAL STORAGE HELPERS ---
+            getHistory() {
+                try {
+                    const data = localStorage.getItem(this.STORAGE_KEY);
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    console.error("Storage error:", e);
+                    return [];
+                }
+            }
+
+            saveHistory(resultRecord) {
+                const history = this.getHistory();
+                history.unshift(resultRecord); // Add newest first
+                try {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history.slice(0, 30))); // Keep last 30
+                } catch (e) {
+                    console.error("Storage save error:", e);
+                }
+            }
+
+            clearHistory() {
+                localStorage.removeItem(this.STORAGE_KEY);
+                this.showHome();
+            }
+
+            // --- VIEW ROUTING ---
+            showHome() {
+                this.stopTimer();
+                this.currentMode = 'home';
+                const main = document.getElementById('main-content');
+                const history = this.getHistory();
+
+                // Compute aggregated stats
+                const totalExams = history.length;
+                const passedExams = history.filter(h => h.isPassedOverall).length;
+                const passRate = totalExams > 0 ? Math.round((passedExams / totalExams) * 100) : 0;
+                const bestScore = history.reduce((max, h) => Math.max(max, h.totalScore), 0);
+
+                main.innerHTML = `
+                    <div class="space-y-8 max-w-5xl mx-auto">
+                        <!-- HERO BANNER -->
+                        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-900 via-brand-800 to-brand-600 text-white p-6 sm:p-10 shadow-xl">
+                            <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                                <i class="fa-solid fa-award text-[240px]"></i>
+                            </div>
+                            <div class="relative z-10 max-w-2xl">
+                                <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-brand-100 mb-4">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>อัปเดตระบบสอบเกณฑ์ใหม่ ก.พ. 2567-2569</span>
+                                </div>
+                                <h2 class="font-heading text-2xl sm:text-4xl font-bold leading-tight mb-3">
+                                    เตรียมพร้อมพิชิต <span class="text-amber-300">ตั๋วข้าราชการ ก.พ. ภาค ก.</span>
+                                </h2>
+                                <p class="text-brand-100 text-sm sm:text-base leading-relaxed mb-6">
+                                    ฝึกทำข้อสอบเสมือนจริง จับเวลาจริง เฉลยละเอียดทุกข้อ ครอบคลุมทั้งวิชาคิดวิเคราะห์ ภาษาอังกฤษ และกฎหมายข้าราชการที่ดี
+                                </p>
+                                <div class="flex flex-wrap gap-3">
+                                    <button onclick="app.startMockExam()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-heading font-semibold text-sm sm:text-base px-6 py-3 rounded-xl shadow-lg shadow-amber-400/20 transition flex items-center space-x-2">
+                                        <i class="fa-solid fa-play"></i>
+                                        <span>เริ่มสอบจำลองสนามจริง (24 ข้อ)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STATS DASHBOARD -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500 font-medium">ทำข้อสอบแล้ว</div>
+                                    <div class="text-xl sm:text-2xl font-bold font-heading text-slate-900">${totalExams} <span class="text-xs font-normal text-slate-500">ครั้ง</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500 font-medium">คะแนนสูงสุด</div>
+                                    <div class="text-xl sm:text-2xl font-bold font-heading text-slate-900">${bestScore} <span class="text-xs font-normal text-slate-500">/ 24</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i class="fa-solid fa-percent"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500 font-medium">อัตราการสอบผ่าน</div>
+                                    <div class="text-xl sm:text-2xl font-bold font-heading text-slate-900">${passRate}%</div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500 font-medium">ข้อสอบในระบบ</div>
+                                    <div class="text-xl sm:text-2xl font-bold font-heading text-slate-900">${OCSC_QUESTIONS.length} <span class="text-xs font-normal text-slate-500">ข้อ</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EXAM SELECTION SECTION -->
+                        <div class="space-y-4">
+                            <h3 class="font-heading text-xl font-bold text-slate-900 flex items-center space-x-2">
+                                <i class="fa-solid fa-list-check text-brand-600"></i>
+                                <span>เลือกโหมดการทดสอบ</span>
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- FULL MOCK EXAM CARD -->
+                                <div class="bg-white rounded-2xl border-2 border-brand-200 hover:border-brand-500 p-6 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group" onclick="app.startMockExam()">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="bg-brand-100 text-brand-800 text-xs font-semibold px-2.5 py-1 rounded-full font-heading">
+                                                แนะนำสำหรับเตรียมสอบจริง
+                                            </span>
+                                            <span class="text-xs text-slate-400">
+                                                <i class="fa-regular fa-clock mr-1"></i> 30 นาที
+                                            </span>
+                                        </div>
+                                        <h4 class="font-heading text-lg font-bold text-slate-900 group-hover:text-brand-600 transition mb-2">
+                                            โหมดจำลองสนามสอบจริง (Full Mock Exam)
+                                        </h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                            รวมข้อสอบครบทั้ง 3 วิชา (24 ข้อ) จับเวลาถอยหลัง ประเมินผลเกณฑ์สอบผ่าน ภาค ก. จริงตามกำหนดของสำนักงาน ก.พ. (ต้องผ่านเกณฑ์ครบทั้ง 3 วิชา)
+                                        </p>
+                                    </div>
+                                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                        <div class="text-xs text-slate-500">
+                                            <span class="font-semibold text-slate-700">เกณฑ์ผ่าน:</span> คิดวิเคราะห์ 60% | อังกฤษ 50% | กฎหมาย 60%
+                                        </div>
+                                        <span class="w-8 h-8 rounded-full bg-brand-50 group-hover:bg-brand-600 text-brand-600 group-hover:text-white flex items-center justify-center transition">
+                                            <i class="fa-solid fa-arrow-right text-sm"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- SUBJECT PRACTICE MODE -->
+                                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-full font-heading">
+                                                ฝึกฝนเฉพาะจุด
+                                            </span>
+                                            <span class="text-xs text-slate-400">
+                                                ไม่จำกัดเวลา
+                                            </span>
+                                        </div>
+                                        <h4 class="font-heading text-lg font-bold text-slate-900 mb-2">
+                                            โหมดฝึกฝนแยกตามรายวิชา (Practice Mode)
+                                        </h4>
+                                        <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                            เลือกเจาะลึกเฉพาะวิชาที่คุณต้องการทบทวนความรู้เพื่อปิดจุดอ่อน
+                                        </p>
+                                    </div>
+
+                                    <!-- SUBJECT LIST BUTTONS -->
+                                    <div class="space-y-2">
+                                        <button onclick="app.startPracticeExam(1)" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50/50 transition flex items-center justify-between group">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">1</div>
+                                                <div>
+                                                    <div class="text-xs font-bold text-slate-800 font-heading group-hover:text-brand-600">วิชาความสามารถในการคิดวิเคราะห์</div>
+                                                    <div class="text-[10px] text-slate-500">8 ข้อ • เกณฑ์ผ่าน 60%</div>
+                                                </div>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-brand-600"></i>
+                                        </button>
+
+                                        <button onclick="app.startPracticeExam(2)" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50/50 transition flex items-center justify-between group">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs">2</div>
+                                                <div>
+                                                    <div class="text-xs font-bold text-slate-800 font-heading group-hover:text-brand-600">วิชาภาษาอังกฤษ (English)</div>
+                                                    <div class="text-[10px] text-slate-500">8 ข้อ • เกณฑ์ผ่าน 50%</div>
+                                                </div>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-brand-600"></i>
+                                        </button>
+
+                                        <button onclick="app.startPracticeExam(3)" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50/50 transition flex items-center justify-between group">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">3</div>
+                                                <div>
+                                                    <div class="text-xs font-bold text-slate-800 font-heading group-hover:text-brand-600">วิชาข้าราชการที่ดี & กฎหมาย ก.พ.</div>
+                                                    <div class="text-[10px] text-slate-500">8 ข้อ • เกณฑ์ผ่าน 60%</div>
+                                                </div>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-brand-600"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RECENT HISTORY TABLE -->
+                        ${history.length > 0 ? `
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-heading font-bold text-slate-900 text-base">ประวัติทำข้อสอบล่าสุด</h3>
+                                <button onclick="app.clearHistory()" class="text-xs text-rose-600 hover:text-rose-700">
+                                    <i class="fa-regular fa-trash-can mr-1"></i> ล้างประวัติ
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-50 text-slate-700 uppercase font-heading">
+                                        <tr>
+                                            <th class="px-4 py-3 rounded-l-lg">วันที่/เวลา</th>
+                                            <th class="px-4 py-3">โหมดการสอบ</th>
+                                            <th class="px-4 py-3">คะแนนรวม</th>
+                                            <th class="px-4 py-3">สถานะประเมินผล</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${history.slice(0, 5).map(h => `
+                                            <tr class="hover:bg-slate-50">
+                                                <td class="px-4 py-3 font-medium text-slate-900">${h.date}</td>
+                                                <td class="px-4 py-3">${h.modeName}</td>
+                                                <td class="px-4 py-3 font-bold">${h.totalScore} / ${h.totalQuestions}</td>
+                                                <td class="px-4 py-3">
+                                                    ${h.isPassedOverall ? 
+                                                        `<span class="bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full text-[11px]"><i class="fa-solid fa-check mr-1"></i> ผ่านเกณฑ์</span>` :
+                                                        `<span class="bg-rose-100 text-rose-800 font-semibold px-2 py-0.5 rounded-full text-[11px]"><i class="fa-solid fa-xmark mr-1"></i> ไม่ผ่านเกณฑ์</span>`
+                                                    }
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            // --- EXAM LOGIC INITIALIZERS ---
+            startMockExam() {
+                this.examModeType = 'mock';
+                this.selectedSubjectId = null;
+                this.activeQuestions = [...OCSC_QUESTIONS];
+                this.userAnswers = {};
+                this.flaggedQuestions.clear();
+                this.currentIndex = 0;
+                this.timeLeftSeconds = 30 * 60; // 30 mins
+                this.totalExamTimeSeconds = 30 * 60;
+
+                this.startTimer();
+                this.renderExamInterface();
+            }
+
+            startPracticeExam(subjectId) {
+                this.examModeType = 'practice';
+                this.selectedSubjectId = subjectId;
+                this.activeQuestions = OCSC_QUESTIONS.filter(q => q.subjectId === subjectId);
+                this.userAnswers = {};
+                this.flaggedQuestions.clear();
+                this.currentIndex = 0;
+                this.timeLeftSeconds = 0; // Untimed or stopwatch style
+
+                this.stopTimer();
+                this.renderExamInterface();
+            }
+
+            startTimer() {
+                this.stopTimer();
+                this.timerInterval = setInterval(() => {
+                    if (this.timeLeftSeconds > 0) {
+                        this.timeLeftSeconds--;
+                        this.updateTimerDisplay();
+                    } else {
+                        this.stopTimer();
+                        alert("หมดเวลาทำข้อสอบแล้ว! ระบบจะทำการส่งข้อสอบอัตโนมัติ");
+                        this.submitExam();
+                    }
+                }, 1000);
+            }
+
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+
+            updateTimerDisplay() {
+                const timerEl = document.getElementById('exam-timer');
+                if (!timerEl) return;
+                
+                const mins = Math.floor(this.timeLeftSeconds / 60);
+                const secs = this.timeLeftSeconds % 60;
+                const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                
+                timerEl.innerText = formatted;
+
+                // Warning indicator if less than 5 minutes
+                if (this.timeLeftSeconds < 300) {
+                    timerEl.classList.add('text-rose-600', 'animate-pulse');
+                } else {
+                    timerEl.classList.remove('text-rose-600', 'animate-pulse');
+                }
+            }
+
+            // --- EXAM INTERFACE RENDERER ---
+            renderExamInterface() {
+                this.currentMode = 'exam';
+                const main = document.getElementById('main-content');
+                const q = this.activeQuestions[this.currentIndex];
+
+                const modeTitle = this.examModeType === 'mock' 
+                    ? 'จำลองสนามสอบจริง (Full Mock)' 
+                    : `ฝึกฝน: ${OCSC_CRITERIA[this.selectedSubjectId].name}`;
+
+                main.innerHTML = `
+                    <div class="space-y-6 max-w-6xl mx-auto">
+                        <!-- TOP EXAM BAR -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-20 z-20">
+                            <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                                <div>
+                                    <span class="text-xs font-semibold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md font-heading">${modeTitle}</span>
+                                    <h3 class="font-heading font-bold text-slate-800 text-sm sm:text-base mt-1">
+                                        ข้อที่ ${this.currentIndex + 1} / ${this.activeQuestions.length}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <!-- TIMER & SUBMIT BUTTON -->
+                            <div class="flex items-center space-x-4 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                                ${this.examModeType === 'mock' ? `
+                                    <div class="flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-xl text-slate-700 font-mono text-sm font-bold">
+                                        <i class="fa-regular fa-clock text-brand-600"></i>
+                                        <span id="exam-timer">--:--</span>
+                                    </div>
+                                ` : ''}
+
+                                <button onclick="app.confirmSubmitModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-semibold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md transition flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>ส่งข้อสอบ</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- MAIN EXAM CONTENT GRID -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            
+                            <!-- LEFT/MAIN: QUESTION CARD -->
+                            <div class="lg:col-span-8 space-y-6">
+                                <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                                    <!-- TOP QUESTION HEADER -->
+                                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                                        <div class="text-xs text-slate-500 font-medium">
+                                            <span class="text-slate-400">วิชา:</span> ${q.subjectName} 
+                                            <span class="mx-1">•</span> 
+                                            <span class="text-brand-600 font-semibold">${q.topic}</span>
+                                        </div>
+                                        <button onclick="app.toggleFlag(${q.id})" class="text-xs font-medium px-3 py-1.5 rounded-lg border transition flex items-center space-x-1.5 ${this.flaggedQuestions.has(q.id) ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                                            <i class="fa-solid fa-flag ${this.flaggedQuestions.has(q.id) ? 'text-amber-500' : 'text-slate-400'}"></i>
+                                            <span>${this.flaggedQuestions.has(q.id) ? 'ติดธงแล้ว' : 'ทำเครื่องหมายทบทวน'}</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- QUESTION STATEMENT -->
+                                    <div class="text-base sm:text-lg font-medium text-slate-900 leading-relaxed mb-6">
+                                        ${q.question.replace(/\n/g, '<br>')}
+                                    </div>
+
+                                    <!-- CHOICES LIST -->
+                                    <div class="space-y-3">
+                                        ${q.choices.map((choice, idx) => {
+                                            const choiceLetters = ['ก', 'ข', 'ค', 'ง'];
+                                            const isSelected = this.userAnswers[q.id] === idx;
+                                            return `
+                                                <button onclick="app.selectAnswer(${q.id}, ${idx})" class="w-full text-left p-4 rounded-xl border-2 transition flex items-start space-x-3 group ${isSelected ? 'border-brand-600 bg-brand-50/70 shadow-sm' : 'border-slate-200 hover:border-brand-300 hover:bg-slate-50'}">
+                                                    <div class="w-7 h-7 rounded-lg font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 transition ${isSelected ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-brand-100 group-hover:text-brand-700'}">
+                                                        ${choiceLetters[idx]}
+                                                    </div>
+                                                    <div class="text-sm text-slate-800 group-hover:text-slate-900 leading-normal pt-1">
+                                                        ${choice}
+                                                    </div>
+                                                </button>
+                                            `;
+                                        }).join('')}
+                                    </div>
+
+                                    <!-- FOOTER NAVIGATION BUTTONS -->
+                                    <div class="flex items-center justify-between mt-8 pt-4 border-t border-slate-100">
+                                        <button onclick="app.prevQuestion()" ${this.currentIndex === 0 ? 'disabled class="opacity-40 cursor-not-allowed text-xs text-slate-400 px-4 py-2 rounded-xl bg-slate-100"' : 'class="text-xs font-semibold text-slate-700 hover:text-brand-600 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition flex items-center space-x-1"'}>
+                                            <i class="fa-solid fa-chevron-left mr-1"></i> ข้อก่อนหน้า
+                                        </button>
+
+                                        <span class="text-xs text-slate-400 hidden sm:inline-block">กดปุ่ม 1-4 เพื่อเลือกคำตอบ | ลูกศร ←/→ เพื่อเปลี่ยนข้อ</span>
+
+                                        <button onclick="app.nextQuestion()" ${this.currentIndex === this.activeQuestions.length - 1 ? 'disabled class="opacity-40 cursor-not-allowed text-xs text-slate-400 px-4 py-2 rounded-xl bg-slate-100"' : 'class="text-xs font-semibold text-white px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 transition flex items-center space-x-1 shadow-sm"'}>
+                                            <span>ข้อถัดไป</span> <i class="fa-solid fa-chevron-right ml-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT/SIDEBAR: QUESTION NAVIGATOR GRID -->
+                            <div class="lg:col-span-4 space-y-6">
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm sticky top-40">
+                                    <h4 class="font-heading font-bold text-slate-800 text-sm mb-3 flex items-center justify-between">
+                                        <span>กระดาษคำตอบ (Question Grid)</span>
+                                        <span class="text-xs text-slate-500 font-normal">ตอบแล้ว ${Object.keys(this.userAnswers).length}/${this.activeQuestions.length}</span>
+                                    </h4>
+
+                                    <!-- LEGEND -->
+                                    <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-600 mb-4 bg-slate-50 p-2.5 rounded-xl">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="w-3 h-3 rounded-full bg-brand-600"></span>
+                                            <span>ตอบแล้ว</span>
+                                        </div>
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="w-3 h-3 rounded-full bg-slate-200"></span>
+                                            <span>ยังไม่ได้ตอบ</span>
+                                        </div>
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                            <span>ติดธงไว้</span>
+                                        </div>
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="w-3 h-3 rounded-full border-2 border-brand-600"></span>
+                                            <span>ข้อปัจจุบัน</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- GRID BUTTONS -->
+                                    <div class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto custom-scrollbar p-1">
+                                        ${this.activeQuestions.map((item, idx) => {
+                                            const isCurrent = idx === this.currentIndex;
+                                            const isAnswered = this.userAnswers[item.id] !== undefined;
+                                            const isFlagged = this.flaggedQuestions.has(item.id);
+
+                                            let btnStyle = "bg-slate-100 text-slate-700 hover:bg-slate-200";
+                                            if (isAnswered) btnStyle = "bg-brand-600 text-white font-bold";
+                                            if (isFlagged) btnStyle = "bg-amber-400 text-slate-950 font-bold";
+                                            if (isCurrent) btnStyle += " ring-2 ring-offset-2 ring-brand-600";
+
+                                            return `
+                                                <button onclick="app.jumpToQuestion(${idx})" class="w-full h-9 rounded-lg text-xs font-heading transition relative flex items-center justify-center ${btnStyle}">
+                                                    ${idx + 1}
+                                                    ${isFlagged ? `<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-white"></span>` : ''}
+                                                </button>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+
+                if (this.examModeType === 'mock') {
+                    this.updateTimerDisplay();
+                }
+            }
+
+            // --- EXAM ACTION HANDLERS ---
+            selectAnswer(questionId, choiceIndex) {
+                this.userAnswers[questionId] = choiceIndex;
+                this.renderExamInterface();
+            }
+
+            toggleFlag(questionId) {
+                if (this.flaggedQuestions.has(questionId)) {
+                    this.flaggedQuestions.delete(questionId);
+                } else {
+                    this.flaggedQuestions.add(questionId);
+                }
+                this.renderExamInterface();
+            }
+
+            jumpToQuestion(index) {
+                if (index >= 0 && index < this.activeQuestions.length) {
+                    this.currentIndex = index;
+                    this.renderExamInterface();
+                }
+            }
+
+            prevQuestion() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.renderExamInterface();
+                }
+            }
+
+            nextQuestion() {
+                if (this.currentIndex < this.activeQuestions.length - 1) {
+                    this.currentIndex++;
+                    this.renderExamInterface();
+                }
+            }
+
+            attachGlobalKeyboardListeners() {
+                document.addEventListener('keydown', (e) => {
+                    if (this.currentMode !== 'exam') return;
+
+                    // Number keys 1-4
+                    if (['1', '2', '3', '4'].includes(e.key)) {
+                        const q = this.activeQuestions[this.currentIndex];
+                        const idx = parseInt(e.key) - 1;
+                        this.selectAnswer(q.id, idx);
+                    }
+                    // Arrow Left
+                    else if (e.key === 'ArrowLeft') {
+                        this.prevQuestion();
+                    }
+                    // Arrow Right
+                    else if (e.key === 'ArrowRight') {
+                        this.nextQuestion();
+                    }
+                    // 'f' or 'F' for flag
+                    else if (e.key.toLowerCase() === 'f') {
+                        const q = this.activeQuestions[this.currentIndex];
+                        this.toggleFlag(q.id);
+                    }
+                });
+            }
+
+            confirmSubmitModal() {
+                const total = this.activeQuestions.length;
+                const answered = Object.keys(this.userAnswers).length;
+                const unanswered = total - answered;
+
+                const modalRoot = document.getElementById('modal-root');
+                modalRoot.innerHTML = `
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+                            <div class="text-center space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                </div>
+                                <h3 class="font-heading font-bold text-lg text-slate-900">ยืนยันการส่งข้อสอบ?</h3>
+                                <p class="text-xs text-slate-600">
+                                    คุณตอบข้อสอบไปแล้ว <span class="font-bold text-brand-600">${answered}</span> จากทั้งหมด <span class="font-bold text-slate-800">${total}</span> ข้อ
+                                    ${unanswered > 0 ? `<br><span class="text-rose-600 font-semibold">ยังคงเหลือข้อที่ไม่ได้ตอบอีก ${unanswered} ข้อ</span>` : ''}
+                                </p>
+                            </div>
+                            <div class="flex space-x-3 pt-2">
+                                <button onclick="document.getElementById('modal-root').innerHTML=''" class="w-1/2 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+                                    กลับไปทำต่อ
+                                </button>
+                                <button onclick="app.submitExam()" class="w-1/2 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shadow-md transition">
+                                    ยืนยันส่งข้อสอบ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- SUBMIT & EVALUATION LOGIC ---
+            submitExam() {
+                this.stopTimer();
+                document.getElementById('modal-root').innerHTML = '';
+
+                // Calculate scores per subject
+                const subjectScores = { 1: 0, 2: 0, 3: 0 };
+                const subjectTotals = { 1: 0, 2: 0, 3: 0 };
+
+                this.activeQuestions.forEach(q => {
+                    subjectTotals[q.subjectId]++;
+                    if (this.userAnswers[q.id] === q.answer) {
+                        subjectScores[q.subjectId]++;
+                    }
+                });
+
+                // Evaluate Pass/Fail status per subject
+                const subjectResults = {};
+                let isPassedOverall = true;
+
+                // If in practice mode, only evaluate the selected subject
+                const relevantSubjects = this.examModeType === 'mock' ? [1, 2, 3] : [this.selectedSubjectId];
+
+                relevantSubjects.forEach(sId => {
+                    const score = subjectScores[sId];
+                    const total = subjectTotals[sId];
+                    const percent = total > 0 ? (score / total) * 100 : 0;
+                    const required = OCSC_CRITERIA[sId].passPercent;
+                    const isPassed = percent >= required;
+
+                    subjectResults[sId] = {
+                        score,
+                        total,
+                        percent,
+                        required,
+                        isPassed
+                    };
+
+                    if (!isPassed) {
+                        isPassedOverall = false;
+                    }
+                });
+
+                const totalScore = Object.values(subjectScores).reduce((a, b) => a + b, 0);
+                const totalQuestions = this.activeQuestions.length;
+
+                // Create record for history
+                const resultRecord = {
+                    date: new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                    modeType: this.examModeType,
+                    modeName: this.examModeType === 'mock' ? 'จำลองสนามสอบจริง' : `ฝึกฝนวิชา ${OCSC_CRITERIA[this.selectedSubjectId].name}`,
+                    totalScore,
+                    totalQuestions,
+                    isPassedOverall,
+                    subjectResults
+                };
+
+                this.saveHistory(resultRecord);
+                this.renderResultView(resultRecord);
+
+                // Confetti if passed overall
+                if (isPassedOverall && typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            }
+
+            // --- RESULT & REVIEW VIEW RENDERER ---
+            renderResultView(record) {
+                this.currentMode = 'result';
+                const main = document.getElementById('main-content');
+
+                main.innerHTML = `
+                    <div class="space-y-8 max-w-4xl mx-auto">
+                        <!-- OVERALL EVALUATION BANNER -->
+                        <div class="rounded-3xl p-6 sm:p-8 text-center text-white shadow-xl relative overflow-hidden ${record.isPassedOverall ? 'bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900' : 'bg-gradient-to-br from-rose-600 via-slate-800 to-slate-900'}">
+                            <div class="relative z-10 space-y-3">
+                                <div class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg ${record.isPassedOverall ? 'bg-emerald-400/20 text-emerald-200' : 'bg-rose-400/20 text-rose-200'}">
+                                    <i class="fa-solid ${record.isPassedOverall ? 'fa-award' : 'fa-circle-xmark'}"></i>
+                                </div>
+                                <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${record.isPassedOverall ? 'bg-emerald-400/20 text-emerald-100' : 'bg-rose-400/20 text-rose-100'}">
+                                    ${record.modeName}
+                                </span>
+                                <h2 class="font-heading font-bold text-2xl sm:text-4xl">
+                                    ${record.isPassedOverall ? 'ยินดีด้วย! คุณสอบผ่านเกณฑ์ ก.พ.' : 'ยังไม่ผ่านเกณฑ์การทดสอบ'}
+                                </h2>
+                                <p class="text-xs sm:text-sm text-slate-200 max-w-md mx-auto">
+                                    ${record.isPassedOverall 
+                                        ? 'คุณทำคะแนนผ่านเกณฑ์ขั้นต่ำตามที่สำนักงาน ก.พ. กำหนดครบถ้วนในทุกวิชา' 
+                                        : 'การสอบผ่าน ก.พ. ภาค ก. จำเป็นต้องทำคะแนนผ่านเกณฑ์ขั้นต่ำครบทั้ง 3 วิชา สู้ต่อไปนะครับ!'}
+                                </p>
+                                <div class="pt-2 font-heading">
+                                    <span class="text-3xl sm:text-5xl font-bold">${record.totalScore}</span>
+                                    <span class="text-sm opacity-80"> / ${record.totalQuestions} คะแนน</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBJECT BREAKDOWN CARDS -->
+                        <div class="space-y-4">
+                            <h3 class="font-heading font-bold text-slate-900 text-lg flex items-center space-x-2">
+                                <i class="fa-solid fa-chart-pie text-brand-600"></i>
+                                <span>สรุปคะแนนแยกตามรายวิชา</span>
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                ${Object.keys(record.subjectResults).map(sId => {
+                                    const res = record.subjectResults[sId];
+                                    const crit = OCSC_CRITERIA[sId];
+                                    return `
+                                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <h4 class="font-heading font-bold text-sm text-slate-800">${crit.name}</h4>
+                                                <span class="text-xs font-bold px-2 py-0.5 rounded-md ${res.isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                                    ${res.isPassed ? 'ผ่าน' : 'ไม่ผ่าน'}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-baseline justify-between text-xs text-slate-500">
+                                                <span>คะแนนที่ได้: <strong class="text-slate-800 text-base font-heading">${res.score}/${res.total}</strong> (${Math.round(res.percent)}%)</span>
+                                                <span>เกณฑ์ผ่าน: ${res.required}%</span>
+                                            </div>
+
+                                            <!-- PROGRESS BAR -->
+                                            <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden relative">
+                                                <div class="h-full rounded-full transition-all duration-500 ${res.isPassed ? 'bg-emerald-500' : 'bg-rose-500'}" style="width: ${res.percent}%"></div>
+                                                <!-- THRESHOLD MARKER -->
+                                                <div class="absolute top-0 bottom-0 w-0.5 bg-slate-400 z-10" style="left: ${res.required}%" title="เกณฑ์ผ่าน ${res.required}%"></div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- DETAILED REVIEW SECTION -->
+                        <div class="space-y-4 pt-4 border-t border-slate-200">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <h3 class="font-heading font-bold text-slate-900 text-lg flex items-center space-x-2">
+                                    <i class="fa-solid fa-list-check text-brand-600"></i>
+                                    <span>ตรวจเฉลยคำตอบอย่างละเอียด</span>
+                                </h3>
+
+                                <!-- REVIEW FILTERS -->
+                                <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium space-x-1">
+                                    <button onclick="app.setReviewFilter('all')" class="px-3 py-1.5 rounded-lg transition ${this.reviewFilter === 'all' ? 'bg-white text-brand-600 font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                                        ทั้งหมด
+                                    </button>
+                                    <button onclick="app.setReviewFilter('wrong')" class="px-3 py-1.5 rounded-lg transition ${this.reviewFilter === 'wrong' ? 'bg-white text-rose-600 font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                                        เฉพาะข้อที่ผิด
+                                    </button>
+                                    <button onclick="app.setReviewFilter('flagged')" class="px-3 py-1.5 rounded-lg transition ${this.reviewFilter === 'flagged' ? 'bg-white text-amber-600 font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                                        เฉพาะที่ติด Flag
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- REVIEW LIST CARDS -->
+                            <div class="space-y-6">
+                                ${this.renderReviewItemsHTML()}
+                            </div>
+                        </div>
+
+                        <!-- BOTTOM ACTION BUTTONS -->
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-slate-200">
+                            <button onclick="app.showHome()" class="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-300 font-heading font-semibold text-slate-700 hover:bg-slate-100 transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-house"></i>
+                                <span>กลับหน้าหลัก</span>
+                            </button>
+                            <button onclick="app.retryCurrentMode()" class="w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-heading font-semibold shadow-md transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-rotate-right"></i>
+                                <span>ทำข้อสอบใหม่อีกครั้ง</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            setReviewFilter(filterType) {
+                this.reviewFilter = filterType;
+                const record = this.getHistory()[0];
+                if (record) {
+                    this.renderResultView(record);
+                }
+            }
+
+            renderReviewItemsHTML() {
+                const filtered = this.activeQuestions.filter((q) => {
+                    const userChoice = this.userAnswers[q.id];
+                    const isCorrect = userChoice === q.answer;
+                    const isFlagged = this.flaggedQuestions.has(q.id);
+
+                    if (this.reviewFilter === 'wrong') return !isCorrect;
+                    if (this.reviewFilter === 'flagged') return isFlagged;
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    return `
+                        <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-200">
+                            <i class="fa-solid fa-inbox text-4xl mb-2"></i>
+                            <p class="text-sm font-medium">ไม่พบรายการข้อสอบตามเงื่อนไขการกรองนี้</p>
+                        </div>
+                    `;
+                }
+
+                return filtered.map((q) => {
+                    const originalIndex = this.activeQuestions.findIndex(item => item.id === q.id);
+                    const userChoice = this.userAnswers[q.id];
+                    const isCorrect = userChoice === q.answer;
+                    const isUnanswered = userChoice === undefined;
+                    const choiceLetters = ['ก', 'ข', 'ค', 'ง'];
+
+                    return `
+                        <div class="bg-white rounded-2xl border ${isCorrect ? 'border-slate-200' : 'border-rose-200'} p-6 shadow-sm space-y-4">
+                            <!-- HEADER -->
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-6 h-6 rounded-md bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center font-heading">
+                                        ${originalIndex + 1}
+                                    </span>
+                                    <span class="text-xs text-slate-500 font-medium">${q.subjectName} • ${q.topic}</span>
+                                </div>
+
+                                <div class="flex items-center space-x-2">
+                                    ${this.flaggedQuestions.has(q.id) ? `<span class="bg-amber-100 text-amber-800 text-[11px] font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-flag mr-1"></i> Flagged</span>` : ''}
+                                    ${isCorrect 
+                                        ? `<span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-md"><i class="fa-solid fa-check mr-1"></i> ตอบถูกต้อง</span>` 
+                                        : `<span class="bg-rose-100 text-rose-800 text-xs font-semibold px-2.5 py-1 rounded-md"><i class="fa-solid fa-xmark mr-1"></i> ตอบผิด</span>`}
+                                </div>
+                            </div>
+
+                            <!-- QUESTION -->
+                            <div class="text-sm sm:text-base font-medium text-slate-900 leading-relaxed">
+                                ${q.question.replace(/\n/g, '<br>')}
+                            </div>
+
+                            <!-- CHOICES REVIEW -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                ${q.choices.map((cText, idx) => {
+                                    let style = "bg-slate-50 border-slate-200 text-slate-700";
+                                    if (idx === q.answer) {
+                                        style = "bg-emerald-50 border-emerald-400 text-emerald-900 font-bold ring-1 ring-emerald-400";
+                                    } else if (idx === userChoice && !isCorrect) {
+                                        style = "bg-rose-50 border-rose-300 text-rose-900 font-bold line-through";
+                                    }
+
+                                    return `
+                                        <div class="p-3 rounded-xl border flex items-start space-x-2 ${style}">
+                                            <span class="font-bold">${choiceLetters[idx]}.</span>
+                                            <span>${cText}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <!-- EXPLANATION BOX -->
+                            <div class="bg-brand-50/70 border border-brand-100 rounded-xl p-4 text-xs leading-relaxed space-y-1">
+                                <div class="font-heading font-bold text-brand-900 flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                                    <span>คำอธิบายเฉลยอย่างละเอียด:</span>
+                                </div>
+                                <div class="text-slate-700 whitespace-pre-line pt-1">
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            retryCurrentMode() {
+                if (this.examModeType === 'mock') {
+                    this.startMockExam();
+                } else {
+                    this.startPracticeExam(this.selectedSubjectId);
+                }
+            }
+
+            resetStatsModal() {
+                const history = this.getHistory();
+                const modalRoot = document.getElementById('modal-root');
+                modalRoot.innerHTML = `
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 class="font-heading font-bold text-lg text-slate-900">ประวัติการทดสอบทั้งหมด</h3>
+                                <button onclick="document.getElementById('modal-root').innerHTML=''" class="text-slate-400 hover:text-slate-600">
+                                    <i class="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex-grow overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                                ${history.length === 0 ? `<p class="text-xs text-slate-400 text-center py-6">ยังไม่มีประวัติการทำข้อสอบ</p>` : ''}
+                                ${history.map(h => `
+                                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                                        <div>
+                                            <div class="font-bold text-slate-800 font-heading">${h.modeName}</div>
+                                            <div class="text-[10px] text-slate-500">${h.date}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold text-slate-900">${h.totalScore} / ${h.totalQuestions} คะแนน</div>
+                                            <span class="text-[10px] font-semibold ${h.isPassedOverall ? 'text-emerald-600' : 'text-rose-600'}">
+                                                ${h.isPassedOverall ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-100 flex justify-end">
+                                <button onclick="document.getElementById('modal-root').innerHTML=''" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700">
+                                    ปิดหน้าต่าง
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize application when DOM is ready
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new OCSCApp();
+            app.init();
+        });
+    </script>
+</body>
+</html>
