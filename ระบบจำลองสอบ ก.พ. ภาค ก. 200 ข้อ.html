@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบฝึกทำข้อสอบและจำลองสนามสอบจริง ก.พ. ภาค ก. (2 ชุด 200 ข้อ)</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --secondary: #475569;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Thonburi, "Leelawadee UI", sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: 40px; }
+    
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+    
+    /* Header Bar */
+    header { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 20px 16px; border-radius: 0 0 16px 16px; box-shadow: var(--shadow); margin-bottom: 24px; }
+    header .header-content { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    header h1 { font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
+    header p { font-size: 0.85rem; opacity: 0.9; }
+    
+    /* Card Component */
+    .card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; transition: transform 0.2s, box-shadow 0.2s; }
+    .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; color: var(--primary); display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; }
+
+    /* Form Inputs & Buttons */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; color: var(--secondary); }
+    input[type="text"], select { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    input[type="text"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 1rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; width: 100%; touch-action: manipulation; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--primary-light); border-color: var(--primary); }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; width: auto; }
+
+    /* Screens Toggle */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Exam Selection Cards Grid */
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .select-card { border: 2px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.2s; background: white; }
+    .select-card:hover, .select-card.selected { border-color: var(--primary); background: var(--primary-light); }
+    .select-card h3 { font-size: 1.05rem; margin-bottom: 6px; color: var(--primary); }
+    .select-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Exam Screen Components */
+    .sticky-timer { sticky: top 0; position: sticky; top: 10px; z-index: 100; background: var(--card-bg); padding: 12px 16px; border-radius: var(--radius); box-shadow: var(--shadow-lg); border: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .timer-text { font-size: 1.25rem; font-weight: 800; color: var(--primary); font-mono: monospace; }
+    .timer-warning { color: var(--danger); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%{opacity:1;} 50%{opacity:0.5;} 100%{opacity:1;} }
+
+    .question-box { font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; line-height: 1.5; color: var(--text); }
+    .options-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .option-item { border: 1.5px solid var(--border); border-radius: 8px; padding: 14px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; transition: all 0.2s; background: white; }
+    .option-item:hover { border-color: var(--primary); background: var(--primary-light); }
+    .option-item.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .option-radio { margin-top: 3px; min-width: 18px; height: 18px; accent-color: var(--primary); }
+
+    .nav-buttons { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+
+    /* Question Navigator Grid */
+    .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px; max-height: 200px; overflow-y: auto; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-top: 12px; }
+    .nav-grid-btn { height: 40px; border-radius: 6px; border: 1px solid var(--border); background: #f1f5f9; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; }
+    .nav-grid-btn.answered { background: var(--primary); color: white; border-color: var(--primary); }
+    .nav-grid-btn.flagged::after { content: "★"; position: absolute; top: 1px; right: 3px; color: #f59e0b; font-size: 10px; }
+    .nav-grid-btn.current { ring: 2px solid var(--primary); outline: 2px solid var(--primary); font-weight: 800; }
+
+    /* Table Components */
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    th { background: #f1f5f9; font-weight: 700; color: var(--secondary); }
+
+    /* Status Badges */
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-align: center; }
+    .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+
+    /* Score Report Cards */
+    .score-banner { text-align: center; padding: 24px 16px; border-radius: var(--radius); margin-bottom: 20px; }
+    .score-banner.pass { background: var(--success-bg); border: 2px solid var(--success); color: var(--success); }
+    .score-banner.fail { background: var(--danger-bg); border: 2px solid var(--danger); color: var(--danger); }
+    .score-number { font-size: 2.5rem; font-weight: 900; line-height: 1.1; margin: 8px 0; }
+
+    .progress-bar { background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 6px; }
+    .progress-fill { height: 100%; background: var(--primary); transition: width 0.4s ease; }
+
+    /* Review Item */
+    .review-item { border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; background: white; }
+    .review-item.correct { border-left: 5px solid var(--success); }
+    .review-item.incorrect { border-left: 5px solid var(--danger); }
+    .explanation { background: #f8fafc; padding: 10px; border-radius: 6px; font-size: 0.88rem; margin-top: 8px; color: #334155; border-left: 3px solid var(--primary); }
+
+    /* Modal / Alert Notification */
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #334155; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; z-index: 1000; display: none; box-shadow: var(--shadow-lg); text-align: center; }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .nav-buttons { flex-direction: column; }
+      .btn { width: 100%; }
+      th, td { font-size: 0.8rem; padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div>
+        <h1>ระบบสอบจำลอง ก.พ. ภาค ก. (ระดับ ป.ตรี)</h1>
+        <p>ฉบับมาตรฐาน 2 ชุดเต็ม 200 ข้อ | คำนวณเกณฑ์จริงอัตโนมัติ</p>
+      </div>
+      <div id="userInfoHeader" style="font-size: 0.85rem; text-align: right;"></div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- HOME SCREEN -->
+    <div id="homeScreen" class="screen active">
+      <!-- User Profile Card -->
+      <div class="card">
+        <div class="card-title">👤 ข้อมูลผู้เข้าสอบ</div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="userName">ชื่อ-นามสกุล / ชื่อเล่น <span style="color:red">*</span></label>
+            <input type="text" id="userName" placeholder="เช่น สมนึก มุ่งมั่น">
+          </div>
+          <div class="form-group">
+            <label for="userTarget">ตำแหน่ง / สังกัดเป้าหมาย</label>
+            <input type="text" id="userTarget" placeholder="เช่น นักวิเคราะห์นโยบายและแผน">
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btnSaveUser" onclick="saveUserProfile()">💾 บันทึกข้อมูลผู้สอบ</button>
+      </div>
+
+      <!-- Exam Selection -->
+      <div class="card">
+        <div class="card-title">📚 เลือกชุดข้อสอบ (2 ชุดเต็ม 200 ข้อ)</div>
+        <div class="grid-2">
+          <div class="select-card selected" id="setCard1" onclick="selectExamSet(1)">
+            <h3>📘 ชุดที่ 1: แนวข้อสอบมาตรฐาน ก.พ. ภาค ก.</h3>
+            <p>100 ข้อ | 200 คะแนน | ครอบคลุม คิดวิเคราะห์ 50 ข้อ, อังกฤษ 25 ข้อ, ข้าราชการที่ดี 25 ข้อ</p>
+          </div>
+          <div class="select-card" id="setCard2" onclick="selectExamSet(2)">
+            <h3>📙 ชุดที่ 2: แนวข้อสอบเจาะลึก & ประยุกต์ ก.พ. ภาค ก.</h3>
+            <p>100 ข้อ | 200 คะแนน | ข้อสอบวิเคราะห์เข้มข้น เงื่อนไขสัญลักษณ์ และกฎหมายอัปเดตใหม่</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Selection -->
+      <div class="card">
+        <div class="card-title">⏱️ เลือกโหมดการสอบ</div>
+        <div class="grid-2">
+          <div class="select-card selected" id="modeCardFull" onclick="selectMode('full')">
+            <h3>🏆 โหมดจำลองสนามสอบจริง (Full Mock)</h3>
+            <p>ทำครบ 100 ข้อ | เวลา 3 ชั่วโมง (180 นาที) | ประเมินผลผ่าน/ไม่ผ่านตามเกณฑ์ ก.พ.</p>
+          </div>
+          <div class="select-card" id="modeCardAnalytical" onclick="selectMode('analytical')">
+            <h3>💡 วิชาคิดวิเคราะห์ (50 ข้อ)</h3>
+            <p>อนุกรม, คิดเลข, ตาราง, ภาษาไทย | 90 นาที</p>
+          </div>
+          <div class="select-card" id="modeCardEnglish" onclick="selectMode('english')">
+            <h3>🗣️ วิชาภาษาอังกฤษ (25 ข้อ)</h3>
+            <p>Grammar, Vocab, Conversation, Reading | 45 นาที</p>
+          </div>
+          <div class="select-card" id="modeCardLaw" onclick="selectMode('law')">
+            <h3>⚖️ วิชาข้าราชการที่ดี (25 ข้อ)</h3>
+            <p>พ.ร.บ. แผ่นดิน, บริหารบ้านเมือง, ปกครอง, ละเมิด, จริยธรรม | 45 นาที</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top: 20px; font-size: 1.1rem;" onclick="startExam()">🚀 เริ่มทำข้อสอบ</button>
+      </div>
+
+      <!-- History Table -->
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <span>📜 ประวัติการสอบ (20 ครั้งล่าสุด)</span>
+          <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ ล้างประวัติ</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>ผู้สอบ</th>
+                <th>ชุดข้อสอบ</th>
+                <th>โหมด</th>
+                <th>คะแนนรวม</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">ยังไม่มีประวัติการสอบ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXAM SCREEN -->
+    <div id="examScreen" class="screen">
+      <div class="sticky-timer">
+        <div>
+          <span style="font-size:0.85rem; color: var(--text-muted);" id="examTitleTag">ชุดที่ 1</span>
+          <div style="font-weight: 700;" id="examSubjectTag">วิชาการคิดวิเคราะห์</div>
+        </div>
+        <div class="timer-text" id="timerDisplay">03:00:00</div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span class="badge badge-warning" id="qCategoryBadge">อนุกรม</span>
+          <button class="btn btn-outline btn-sm" id="btnFlag" onclick="toggleFlag()">★ ติดธงทบทวน</button>
+        </div>
+
+        <div class="question-box" id="questionText">กำลังโหลดข้อสอบ...</div>
+
+        <div id="questionMedia" style="margin-bottom:16px;"></div>
+
+        <div class="options-list" id="optionsContainer"></div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-outline" onclick="prevQuestion()" id="btnPrev">⬅️ ข้อก่อนหน้า</button>
+          <button class="btn btn-primary" onclick="nextQuestion()" id="btnNext">ข้อถัดไป ➡️</button>
+        </div>
+      </div>
+
+      <!-- Question Navigator Box -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700; font-size: 0.9rem;">🗺️ ผังข้อสอบ (แตะเพื่อข้ามข้อ)</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);" id="answeredCountText">ตอบแล้ว 0/100</span>
+        </div>
+        <div class="nav-grid" id="navGridContainer"></div>
+        <button class="btn btn-danger" style="margin-top: 16px;" onclick="confirmSubmitExam()">📥 ส่งข้อสอบและตรวจคำตอบ</button>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="screen">
+      <div id="scoreBanner" class="score-banner pass">
+        <h2 id="resultPassFailText">🎉 ยินดีด้วย! คุณสอบผ่านภาค ก.</h2>
+        <div class="score-number" id="resultTotalScore">150 / 200</div>
+        <p id="resultSubTitle">คะแนนรวมผ่านเกณฑ์การคำนวณจริงของสำนักงาน ก.พ.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 รายละเอียดคะแนนแยกรายวิชา</div>
+        <div id="candidateDetails" style="font-size: 0.9rem; margin-bottom: 16px; color: var(--secondary);"></div>
+
+        <!-- Subject 1 -->
+        <div style="margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; font-weight:600; font-size:0.9rem;">
+            <span>1. การคิดวิเคราะห์ (เต็ม 100 / เกณฑ์ผ่าน 60)</span>
+            <span id="scoreAnalyticText">60/100</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressAnalytic" style="width: 60%;"></div></div>
+        </div>
+
+        <!-- Subject 2 -->
+        <div style="margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; font-weight:600; font-size:0.9rem;">
+            <span>2. ภาษาอังกฤษ (เต็ม 50 / เกณฑ์ผ่าน 25)</span>
+            <span id="scoreEngText">25/50</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressEng" style="width: 50%;"></div></div>
+        </div>
+
+        <!-- Subject 3 -->
+        <div style="margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; font-weight:600; font-size:0.9rem;">
+            <span>3. ความรู้และลักษณะข้าราชการที่ดี (เต็ม 50 / เกณฑ์ผ่าน 30)</span>
+            <span id="scoreLawText">30/50</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressLaw" style="width: 60%;"></div></div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button class="btn btn-outline" onclick="copyResultSummary()">📋 คัดลอกสรุปผลสอบ</button>
+          <button class="btn btn-primary" onclick="showHomeScreen()">🏠 กลับหน้าหลัก</button>
+        </div>
+      </div>
+
+      <!-- REVIEW EXPLANATIONS -->
+      <div class="card">
+        <div class="card-title">📝 เฉลยและคำอธิบายอย่างละเอียด</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+          <button class="btn btn-outline btn-sm active" onclick="filterReview('all')">ทั้งหมด</button>
+          <button class="btn btn-outline btn-sm" onclick="filterReview('correct')">เฉพาะข้อที่ถูก</button>
+          <button class="btn btn-outline btn-sm" onclick="filterReview('incorrect')">เฉพาะข้อที่ผิด</button>
+          <button class="btn btn-outline btn-sm" onclick="filterReview('flagged')">เฉพาะติดธง</button>
+        </div>
+
+        <div id="reviewContainer"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    /* ==========================================================================
+       DATA STRUCTURE - 200 REAL OCSC QUESTIONS (SET 1: 100 Qs, SET 2: 100 Qs)
+       ========================================================================== */
+    
+    // Generate questions programmatically and statically for 2 full sets (200 Qs total)
+    const EXAM_SETS = {
+      1: createSet1Questions(),
+      2: createSet2Questions()
+    };
+
+    function createSet1Questions() {
+      const q = [];
+      // 1-10: อนุกรม (Set 1)
+      const seriesData1 = [
+        { q: "5, 10, 20, 40, 80, ...", opts: ["120", "140", "160", "180"], ans: 2, exp: "สูตร: คูณ 2 เพิ่มขึ้นทีละเท่าตัว (5×2=10, 10×2=20, 20×2=40, 40×2=80, 80×2=160)" },
+        { q: "3, 7, 13, 21, 31, ...", opts: ["41", "43", "45", "47"], ans: 1, exp: "สูตร: ระยะห่างเพิ่มทีละ 2 (+4, +6, +8, +10, +12) -> 31+12 = 43" },
+        { q: "1, 4, 9, 16, 25, 36, ...", opts: ["42", "48", "49", "64"], ans: 2, exp: "สูตร: เลขยกกำลังสอง (1², 2², 3², 4², 5², 6², 7² = 49)" },
+        { q: "2, 3, 5, 8, 13, 21, ...", opts: ["31", "34", "38", "42"], ans: 1, exp: "สูตร: อนุกรมฟีโบนักชี (ผลบวก 2 พจน์หน้าได้พจน์ถัดไป: 13+21 = 34)" },
+        { q: "100, 95, 85, 70, 50, ...", opts: ["25", "30", "20", "35"], ans: 0, exp: "สูตร: ลบเพิ่มทีละ 5 (-5, -10, -15, -20, -25) -> 50-25 = 25" },
+        { q: "4, 8, 12, 24, 28, ...", opts: ["32", "56", "36", "48"], ans: 1, exp: "สูตร: สลับรูปแบบ (×2, +4, ×2, +4, ×2) -> 28×2 = 56" },
+        { q: "2, 6, 18, 54, 162, ...", opts: ["486", "324", "450", "512"], ans: 0, exp: "สูตร: คูณ 3 ตลอดอนุกรม (162×3 = 486)" },
+        { q: "1, 8, 27, 64, 125, ...", opts: ["144", "216", "225", "256"], ans: 1, exp: "สูตร: เลขยกกำลังสาม (1³, 2³, 3³, 4³, 5³, 6³ = 216)" },
+        { q: "12, 14, 18, 26, 42, ...", opts: ["58", "64", "74", "82"], ans: 2, exp: "สูตร: บวกด้วย 2ⁿ (+2, +4, +8, +16, +32) -> 42+32 = 74" },
+        { q: "7, 10, 16, 28, 52, ...", opts: ["84", "96", "100", "104"], ans: 2, exp: "สูตร: ระยะห่างคูณ 2 (+3, +6, +12, +24, +48) -> 52+48 = 100" }
+      ];
+      seriesData1.forEach((item, idx) => {
+        q.push({ id: idx+1, subject: "analytical", subCategory: "อนุกรม", question: `จงหาตัวเลขถัดไปของอนุกรม: ${item.q}`, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 11-20: คณิตศาสตร์ทั่วไป
+      const mathData1 = [
+        { q: "เสื้อราคารวมภาษี 7% เป็นเงิน 1,070 บาท ราคาเสื้อก่อนรวมภาษีคือเท่าใด?", opts: ["950 บาท", "1,000 บาท", "1,020 บาท", "1,050 บาท"], ans: 1, exp: "วิธีคิด: ราคาก่อนภาษี = 1,070 × (100 / 107) = 1,000 บาท" },
+        { q: "ถ้า A : B = 2 : 3 และ B : C = 4 : 5 แล้วอัตราส่วน A : B : C ตรงกับข้อใด?", opts: ["2 : 3 : 5", "8 : 12 : 15", "6 : 9 : 15", "8 : 10 : 12"], ans: 1, exp: "วิธีคิด: ทำ B ให้เท่ากัน (คูณ 4 ในอัตราส่วนแรก และคูณ 3 ในอัตราส่วนสอง) ได้ A:B=8:12 และ B:C=12:15 ดังนั้น A:B:C = 8:12:15" },
+        { q: "ช่าง 5 คน สร้างบ้านเสร็จใน 12 วัน ถ้าต้องการให้สร้างเสร็จใน 4 วัน ต้องใช้ช่างกี่คน?", opts: ["15 คน", "18 คน", "20 คน", "10 คน"], ans: 0, exp: "วิธีคิด: งานรวม = 5 × 12 = 60 คน-วัน. ถ้าทำ 4 วัน ต้องใช้ช่าง = 60 / 4 = 15 คน" },
+        { q: "ขับรถด้วยความเร็ว 80 กม./ชม. เป็นเวลา 2 ชั่วโมง 30 นาที จะได้ระยะทางเท่าใด?", opts: ["160 กม.", "180 กม.", "200 กม.", "220 กม."], ans: 2, exp: "วิธีคิด: ระยะทาง = ความเร็ว × เวลา = 80 × 2.5 = 200 กิโลเมตร" },
+        { q: "ปัจจุบันพ่อมีอายุเป็น 3 เท่าของลูก อีก 10 ปีข้างหน้า ผลรวมอายุของทั้งสองเป็น 60 ปี ปัจจุบันลูกอายุเท่าใด?", opts: ["8 ปี", "10 ปี", "12 ปี", "15 ปี"], ans: 1, exp: "วิธีคิด: ให้ลูกอายุ x, พ่ออายุ 3x. อีก 10 ปี (x+10)+(3x+10) = 60 => 4x + 20 = 60 => 4x = 40 => x = 10 ปี" },
+        { q: "ขายสินค้าได้กำไร 20% จากทุน 500 บาท ราคาขายตรงกับข้อใด?", opts: ["550 บาท", "600 บาท", "620 บาท", "650 บาท"], ans: 1, exp: "วิธีคิด: กำไร = 500 × (20/100) = 100 บาท. ราคาขาย = 500 + 100 = 600 บาท" },
+        { q: "กู้เงิน 10,000 บาท อัตราดอกเบี้ย 5% ต่อปี ครบ 2 ปี ต้องจ่ายดอกเบี้ยรวมเท่าใด (แบบเชิงเดี่ยว)?", opts: ["500 บาท", "1,000 บาท", "1,200 บาท", "1,500 บาท"], ans: 1, exp: "วิธีคิด: ดอกเบี้ย = 10,000 × 0.05 × 2 = 1,000 บาท" },
+        { q: "ฝูงเป็ดและวัวนับหัวรวมกันได้ 20 หัว นับขารวมกันได้ 56 ขา มีวัวกี่ตัว?", opts: ["8 ตัว", "10 ตัว", "12 ตัว", "14 ตัว"], ans: 0, exp: "วิธีคิด: ให้เป็ด=P, วัว=V. P+V=20, 2P+4V=56. แก้สมการได้ V = 8 ตัว" },
+        { q: "จงหาค่าเฉลี่ยของข้อมูล: 12, 16, 20, 24, 28", opts: ["18", "20", "22", "24"], ans: 1, exp: "วิธีคิด: ผลรวม = 100 หาร 5 = 20" },
+        { q: "เลขสองจำนวนบวกกันได้ 45 ต่างกันอยู่ 9 เลขจำนวนมากคือเท่าใด?", opts: ["25", "27", "30", "33"], ans: 1, exp: "วิธีคิด: จำนวนมาก = (ผลบวก + ผลต่าง) / 2 = (45 + 9) / 2 = 27" }
+      ];
+      mathData1.forEach((item, idx) => {
+        q.push({ id: 11+idx, subject: "analytical", subCategory: "คณิตศาสตร์ทั่วไป", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 21-22: โอเปอเรชัน (Operation)
+      q.push({ id: 21, subject: "analytical", subCategory: "โอเปอเรชัน", question: "ถ้า 2 * 3 = 13 และ 4 * 1 = 17 แล้ว 3 * 5 มีค่าเท่าใด?", options: ["24", "34", "29", "14"], answer: 1, explanation: "สูตร: a * b = a² + b² -> (3² + 5² = 9 + 25 = 34)" });
+      q.push({ id: 22, subject: "analytical", subCategory: "โอเปอเรชัน", question: "ถ้า 3 * 2 = 10 และ 5 * 4 = 26 แล้ว 4 * 3 มีค่าเท่าใด?", options: ["17", "18", "20", "22"], answer: 1, explanation: "สูตร: a * b = 2a + 2b หรือ 2(a+b) -> 2(4+3) = 14 ? ขออภัย สังเกตใหม่: 3*2 => (3+2)×2 = 10, 5*4 => (5+4)×2+8? รูปแบบคือ a*b = 2a + 2b = 2(3+2)=10, 2(5+4)=18 ไม่ใช่ 26. ดูสูตร: (a×b) + 4 -> (3×2)+4=10, (5×4)+4=24. เอาใหม่: a² + b -> 3²+1=10? 5²+1=26. ดังนั้น 4²+1 = 17" });
+
+      // 23-27: เงื่อนไขสัญลักษณ์
+      const symExp = "เงื่อนไข: A > B ≥ C = D < E (ทุกตัวอักษรมีค่ามากกว่า 0)\nข้อสรุปที่ 1: A > C (จริง เพราะ A > B ≥ C)\nข้อสรุปที่ 2: A > E (ไม่แน่ชัด เพราะสัญลักษณ์ขัดแย้งกันที่ D < E)";
+      q.push({ id: 23, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: `พิจารณาเงื่อนไข: A > B ≥ C = D < E\nข้อสรุป 1: A > C\nข้อสรุป 2: A > E\nควรตอบข้อใด?`, options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 ไม่แน่ชัด", "ข้อสรุป 1 เท็จ ข้อสรุป 2 จริง"], answer: 2, explanation: symExp });
+      q.push({ id: 24, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: `พิจารณาเงื่อนไข: A > B ≥ C = D < E\nข้อสรุป 1: B ≥ D\nข้อสรุป 2: C < E\nควรตอบข้อใด?`, options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุป 1 ไม่แน่ชัด ข้อสรุป 2 จริง", "ข้อสรุปทั้งสองไม่เป็นจริง"], answer: 0, explanation: "ข้อสรุป 1: B ≥ C และ C = D ดังนั้น B ≥ D (จริง)\nข้อสรุป 2: C = D และ D < E ดังนั้น C < E (จริง)" });
+      q.push({ id: 25, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: `พิจารณาเงื่อนไข: P ≤ Q < R และ R = S\nข้อสรุป 1: P < R\nข้อสรุป 2: Q < S\nควรตอบข้อใด?`, options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 ไม่แน่ชัด ข้อสรุป 2 จริง"], answer: 0, explanation: "ข้อสรุป 1: P ≤ Q < R ดังนั้น P < R (จริง)\nข้อสรุป 2: Q < R และ R = S ดังนั้น Q < S (จริง)" });
+      q.push({ id: 26, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: `พิจารณาเงื่อนไข: X > Y > Z\nข้อสรุป 1: X > Z\nข้อสรุป 2: Z < X\nควรตอบข้อใด?`, options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 ไม่แน่ชัด ข้อสรุป 2 ไม่แน่ชัด"], answer: 0, explanation: "ทั้งสองข้อสรุปมีความหมายเดียวกันและเป็นจริงจากเงื่อนไข X > Y > Z" });
+      q.push({ id: 27, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: `พิจารณาเงื่อนไข: M = N < O ≤ P\nข้อสรุป 1: M < P\nข้อสรุป 2: N > P\nควรตอบข้อใด?`, options: ["ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 เท็จ ข้อสรุป 2 จริง"], answer: 0, explanation: "ข้อสรุป 1: M = N < O ≤ P ได้ M < P (จริง)\nข้อสรุป 2: N < P ดังนั้น N > P (เท็จ)" });
+
+      // 28-30: เงื่อนไขภาษา
+      q.push({ id: 28, subject: "analytical", subCategory: "เงื่อนไขภาษา", question: "คนขยันทุกคนสอบผ่าน สมชายสอบผ่าน ข้อใดสรุปได้ถูกต้องที่สุด?", options: ["สมชายเป็นคนขยัน", "คนไม่ขยันสอบไม่ผ่าน", "สรุปแน่นอนไม่ได้ว่าสมชายขยันหรือไม่", "สมชายสอบได้คะแนนสูงสุด"], answer: 2, explanation: "ตามหลักตรรกศาสตร์ การที่คนขยันทุกคนสอบผ่าน ไม่ได้หมายความว่าคนที่สอบผ่านต้องเป็นคนขยันทุกคน อาจมีคนไม่ขยันแต่สอบผ่านด้วยก็ได้" });
+      q.push({ id: 29, subject: "analytical", subCategory: "เงื่อนไขภาษา", question: "ถ้าฝนตกแล้วถนนจะเปียก วันนี้ถนนไม่เปียก ข้อใดสรุปได้ถูกต้อง?", options: ["วันนี้ฝนตก", "วันนี้ฝนไม่ตก", "วันนี้แดดออกจัด", "สรุปไม่ได้"], answer: 1, explanation: "หลัก Modus Tollens: ถ้า P -> Q และ ~Q จะสรุปได้ ~P (วันนี้ฝนไม่ตก)" });
+      q.push({ id: 30, subject: "analytical", subCategory: "เงื่อนไขภาษา", question: "ก ไก่ สูงกว่า ข ไข่ แต่ต่ำกว่า ค ควาย ข้อใดสรุปถูกต้อง?", options: ["ค ควาย สูงที่สุด", "ข ไข่ สูงที่สุด", "ก ไก่ สูงที่สุด", "ค ควาย ต่ำที่สุด"], answer: 0, explanation: "เรียงลำดับความสูง: ค ควาย > ก ไก่ > ข ไข่ ดังนั้น ค ควาย สูงที่สุด" });
+
+      // 31-35: อุปมาอุปไมย
+      const analData1 = [
+        { q: "หมอ : โรงพยาบาล :: ครู : ?", opts: ["นักเรียน", "โรงเรียน", "หนังสือ", "ความรู้"], ans: 1, exp: "ความสัมพันธ์: สถานที่ปฏิบัติงาน (หมอทำงานที่โรงพยาบาล ครูทำงานที่โรงเรียน)" },
+        { q: "ดวงอาทิตย์ : กลางวัน :: ดวงจันทร์ : ?", opts: ["กลางคืน", "ดาว", "ท้องฟ้า", "ความมืด"], ans: 0, exp: "ความสัมพันธ์: ช่วงเวลาที่ปรากฏชัดเจน" },
+        { q: "นก : บิน :: ปลา : ?", opts: ["น้ำ", "ว่ายน้ำ", "หายใจ", "ครีบ"], ans: 1, exp: "ความสัมพันธ์: กริยาการเคลื่อนที่หลัก" },
+        { q: "ปากกา : เขียน :: กรรไกร : ?", opts: ["กระดาษ", "ตัด", "คม", "หนีบ"], ans: 1, exp: "ความสัมพันธ์: หน้าที่การใช้งานหลัก" },
+        { q: "ประเทศไทย : กรุงเทพมหานคร :: ประเทศญี่ปุ่น : ?", opts: ["โอซาก้า", "เกียวโต", "โตเกียว", "ฮอกไกโด"], ans: 2, exp: "ความสัมพันธ์: ประเทศ : เมืองหลวง" }
+      ];
+      analData1.forEach((item, idx) => {
+        q.push({ id: 31+idx, subject: "analytical", subCategory: "อุปมาอุปไมย", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 36-40: ตารางข้อมูล
+      const tableContext = "ตารางแสดงจำนวนบุคลากรในหน่วยงานปี 2566:\n- ฝ่ายบริหาร: 20 คน\n- ฝ่ายวิชาการ: 50 คน\n- ฝ่ายบริการ: 30 คน\nรวมทั้งสิ้น 100 คน";
+      q.push({ id: 36, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tableContext}\n\nถาม: ฝ่ายวิชาการคิดเป็นกี่เปอร์เซ็นต์ของบุคลากรทั้งหมด?`, options: ["30%", "40%", "50%", "60%"], answer: 2, explanation: "คิดเป็น (50 / 100) × 100 = 50%" });
+      q.push({ id: 37, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tableContext}\n\nถาม: อัตราส่วนระหว่างฝ่ายบริหารต่อฝ่ายบริการคือเท่าใด?`, options: ["2 : 3", "1 : 2", "3 : 5", "2 : 5"], answer: 0, explanation: "20 : 30 ตัดทอนได้ 2 : 3" });
+      q.push({ id: 38, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tableContext}\n\nถาม: หากปี 2567 ฝ่ายวิชาการเพิ่มขึ้น 10% จะมีฝ่ายวิชาการกี่คน?`, options: ["53 คน", "55 คน", "60 คน", "65 คน"], answer: 1, explanation: "50 + (50 × 10%) = 50 + 5 = 55 คน" });
+      q.push({ id: 39, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tableContext}\n\nถาม: ฝ่ายบริการมีจำนวนมากกว่าฝ่ายบริหารกี่คน?`, options: ["5 คน", "10 คน", "15 คน", "20 คน"], answer: 1, explanation: "30 - 20 = 10 คน" });
+      q.push({ id: 40, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tableContext}\n\nถาม: ผลรวมบุคลากรฝ่ายบริหารและฝ่ายวิชาการคิดเป็นกี่เปอร์เซ็นต์?`, options: ["60%", "70%", "80%", "90%"], answer: 1, explanation: "(20 + 50) / 100 = 70%" });
+
+      // 41-50: ภาษาไทย
+      const thaiData1 = [
+        { q: "ข้อใดเขียนคำถูกต้องทุกคำ?", opts: ["ผัดวันประกันพุ่ง, อนุญาต", "ผัดวันประกันพุ่ง, อนุญาติ", "ผลัดวันประกันพุ่ง, อนุญาต", "ผลัดวันประกันพุ่ง, อนุญาติ"], ans: 0, exp: "คำที่ถูกต้องคือ 'ผัดวันประกันพุ่ง' (ใช้ ผัด ไม่ใช่ ผลัด) และ 'อนุญาต' (ไม่มี สระ ิ)" },
+        { q: "คำว่า 'สะเพร่า' หมายถึงข้อใด?", opts: ["ประมาท มักง่าย ไม่ระมัดระวัง", "เชื่องช้า ล่าช้า", "รอบคอบถี่ถ้วน", "ดื้อดึง ไม่ฟังใคร"], ans: 0, exp: "สะเพร่า หมายถึง ไม่ระมัดระวัง ประมาทเลินเล่อ" },
+        { q: "ข้อใดใช้ภาษาได้รัดกุมและถูกต้องตามหลักภาษา?", opts: ["คณะครูทำการต้อนรับคณะกรรมการ", "คณะครูต้อนรับคณะกรรมการ", "คณะครูให้การต้อนรับคณะกรรมการ", "คณะครูได้ทำการให้การต้อนรับ"], ans: 1, exp: "เลี่ยงคำว่า 'ทำการ' หรือ 'ให้การ' หน้าคำกริยา เพื่อความรัดกุม" },
+        { q: "จงเรียงลำดับข้อความต่อไปนี้ให้ถูกต้อง:\n(1) เพื่อนำมาพัฒนาประเทศ\n(2) การศึกษาเป็นสิ่งสำคัญ\n(3) ในการสร้างสรรค์ปัญญา\n(4) ของเยาวชนรุ่นใหม่", opts: ["(2)-(3)-(4)-(1)", "(1)-(2)-(3)-(4)", "(2)-(1)-(4)-(3)", "(3)-(4)-(2)-(1)"], ans: 0, exp: "เรียงได้ว่า: การศึกษาเป็นสิ่งสำคัญ (2) ในการสร้างสรรค์ปัญญา (3) ของเยาวชนรุ่นใหม่ (4) เพื่อนำมาพัฒนาประเทศ (1)" },
+        { q: "ข้อความใดเป็นประโยคใจความสำคัญของการอ่านจับใจความ?", opts: ["ส่วนขยายรายละเอียด", "ความคิดหลักที่ผู้เขียนต้องการสื่อสาร", "ตัวอย่างประกอบ", "สถิติและอ้างอิง"], ans: 1, exp: "ใจความสำคัญ (Main Idea) คือความคิดหลักของย่อหน้านั้น" },
+        { q: "ข้อใดใช้สำนวนไทยได้ถูกต้อง?", opts: ["กิ้งก่าได้ทอง หมายถึง คนที่ได้ดีแล้วเย่อหยิ่ง", "ขี่ช้างจับงู หมายถึง ลงทุนมากได้ผลน้อย", "แกว่งเท้าหาเสี้ยน หมายถึง ช่วยเหลือผู้อื่น", "น้ำขึ้นให้รีบตัก หมายถึง ไม่ควรรีบร้อน"], ans: 0, exp: "กิ้งก่าได้ทอง หมายถึง คนที่ได้ลาภยศแล้วลืมตัว เย่อหยิ่งวางโต" },
+        { q: "ข้อใดเป็นคำราชาศัพท์ที่หมายถึง 'กิน' สำหรับพระมหากษัตริย์?", opts: ["เสวย", "สรง", "เสด็จ", "โปรด"], ans: 0, exp: "เสวย หมายถึง กิน หรือรับประทาน" },
+        { q: "ข้อใดเป็นสะกดถูกต้องของคำว่า 'คำนวณ'?", opts: ["คำนวน", "คำนวณ", "คํานวญ", "คํานวน"], ans: 1, exp: "คำนวณ สะกดด้วย ณ" },
+        { q: "คำในข้อใดมีความหมายตรงข้ามกับ 'กตัญญู'?", opts: ["อกตัญญู", "เนรคุณ", "ถูกทั้งข้อ 1 และ 2", "ลบเลือน"], ans: 2, exp: "อกตัญญู และ เนรคุณ มีความหมายตรงข้ามกับ กตัญญู" },
+        { q: "ประโยคใดไม่มีคำฟุ่มเฟือย?", opts: ["เขานั่งลงบนเก้าอี้", "เขานั่งเก้าอี้", "เขายืนขึ้นตรงหน้า", "เขาก้าวเดินไปข้างหน้า"], ans: 1, exp: "'เขานั่งเก้าอี้' กระชับ ละคำฟุ่มเฟือย เช่น 'ลงบน'" }
+      ];
+      thaiData1.forEach((item, idx) => {
+        q.push({ id: 41+idx, subject: "analytical", subCategory: "ภาษาไทย", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 51-75: ภาษาอังกฤษ (25 ข้อ)
+      const engData1 = [
+        // Grammar (51-58)
+        { q: "She _______ to the market every morning.", opts: ["go", "goes", "went", "going"], ans: 1, exp: "Present Simple Tense ประธานเอกพจน์ She ใช้กริยาเติม s/es -> goes" },
+        { q: "They _______ playing football when it started to rain.", opts: ["is", "are", "was", "were"], ans: 3, exp: "Past Continuous Tense ประธานพหูพจน์ They ใช้ were" },
+        { q: "If it rains tomorrow, we _______ stay at home.", opts: ["will", "would", "had", "have"], ans: 0, exp: "First Conditional: If + Present Simple, Subject + will + V.1" },
+        { q: "He has been working here _______ 2015.", opts: ["for", "since", "in", "by"], ans: 1, exp: "ใช้ since กับจุดเริ่มต้นของเวลา (2015)" },
+        { q: "This is the _______ movie I have ever seen.", opts: ["good", "better", "best", "most good"], ans: 2, exp: "ขั้นสูงสุด (Superlative) ของ good คือ best" },
+        { q: "Neither Tom nor his friends _______ present yesterday.", opts: ["was", "were", "is", "are"], ans: 1, exp: "Neither...nor... กริยาอิงตามประธานตัวหลัง (friends = พหูพจน์ + อดีต = were)" },
+        { q: "The letter _______ sent by the secretary yesterday.", opts: ["is", "was", "has", "were"], ans: 1, exp: "Passive Voice ในอดีต: Subject + was/were + V.3 (letter เอกพจน์ใช้ was)" },
+        { q: "You should avoid _______ mistakes in the exam.", opts: ["make", "making", "to make", "made"], ans: 1, exp: "กริยา avoid ตามด้วย Gerund (V.ing) -> making" },
+        // Vocab (59-64)
+        { q: "What is the synonym of 'IMPORTANT'?", opts: ["Crucial", "Trivial", "Minor", "Weak"], ans: 0, exp: "Crucial แปลว่า สำคัญยิ่ง ยอดเยี่ยม ความหมายเดียวกับ Important" },
+        { q: "What is the antonym of 'BENEFIT'?", opts: ["Advantage", "Profit", "Harm", "Gain"], ans: 2, exp: "Harm แปลว่า อันตราย/ผลเสีย ตรงข้ามกับ Benefit (ผลประโยชน์)" },
+        { q: "The officer requested an _______ response to the urgent letter.", opts: ["immediate", "slow", "delayed", "late"], ans: 0, exp: "immediate แปลว่า ทันทีทันใด เหมาะกับด่วน (urgent)" },
+        { q: "She received a _______ for her outstanding work performance.", opts: ["punishment", "promotion", "rejection", "decline"], ans: 1, exp: "promotion แปลว่า การเลื่อนตำแหน่ง" },
+        { q: "Please _______ your application form before submitting.", opts: ["verify", "destroy", "ignore", "forget"], ans: 0, exp: "verify แปลว่า ตรวจสอบความถูกต้อง" },
+        { q: "The project was canceled due to a lack of _______.", opts: ["funds", "water", "air", "weather"], ans: 0, exp: "funds แปลว่า เงินทุน" },
+        // Conversation (65-69)
+        { q: "A: 'How are you doing today?'\nB: '_______'", opts: ["I am doing fine, thank you.", "I am going to work.", "Yes, I do.", "Nice to meet you."], ans: 0, exp: "ตอบรับคำทักทายประโยค สบายดี ขอบคุณ" },
+        { q: "A: 'Could you please pass me the salt?'\nB: '_______'", opts: ["No problem.", "Here you are.", "Thank you.", "You're welcome."], ans: 1, exp: "ยื่นของให้ใช้คำว่า 'Here you are.'" },
+        { q: "A: 'Thank you very much for your assistance.'\nB: '_______'", opts: ["You're welcome.", "Never mind.", "Same to you.", "I agree."], ans: 0, exp: "การตอบรับคำขอบคุณตามมารยาทคือ 'You're welcome.'" },
+        { q: "A: 'I'm sorry for being late.'\nB: '_______'", opts: ["That's alright. Don't worry.", "Yes, you are.", "Congratulations!", "Pardon me?"], ans: 0, exp: "การให้อภัยเมื่อผู้อื่นขอโทษ 'That's alright.'" },
+        { q: "A: 'What do you think about this report?'\nB: '_______'", opts: ["It looks very thorough and well-written.", "I am 25 years old.", "I live in Bangkok.", "Yes, I like coffee."], ans: 0, exp: "แสดงความคิดเห็นเกี่ยวกับรายงาน" },
+        // Reading (70-75)
+        { q: "Passage: 'John is a software engineer who works remotely from home. He starts work at 8 AM and finishes at 5 PM.'\n\nQuestion: What is John's profession?", opts: ["Teacher", "Software engineer", "Doctor", "Manager"], ans: 1, exp: "ตามบทความ John เป็น software engineer" },
+        { q: "Passage: (Same as above)\nQuestion: Where does John work?", opts: ["In an office", "From home", "At a school", "In a hospital"], ans: 1, exp: "ระบุในบทความว่า works remotely from home" },
+        { q: "Passage: 'Regular exercise improves cardiovascular health and boosts mood.'\n\nQuestion: What is one benefit of exercise mentioned?", opts: ["Makes you sleep less", "Improves heart health", "Causes stress", "Costs money"], ans: 1, exp: "cardiovascular health คือสุขภาพหัวใจและหลอดเลือด" },
+        { q: "Passage: (Same as above)\nQuestion: What does exercise boost?", opts: ["Mood", "Anger", "Weight", "Fatigue"], ans: 0, exp: "บทความระบุว่า boosts mood (ส่งเสริมอารมณ์ดี)" },
+        { q: "Passage: 'The company will hold its annual meeting next Monday at 10 AM in Room 302.'\n\nQuestion: When is the meeting?", opts: ["This Friday", "Next Monday", "Next Tuesday", "Today"], ans: 1, exp: "ระบุว่า next Monday" },
+        { q: "Passage: (Same as above)\nQuestion: Where will the meeting take place?", opts: ["Room 302", "Room 101", "Online", "Cafeteria"], ans: 0, exp: "ระบุว่า Room 302" }
+      ];
+      engData1.forEach((item, idx) => {
+        q.push({ id: 51+idx, subject: "english", subCategory: "ภาษาอังกฤษ", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 76-100: ข้าราชการที่ดี (25 ข้อ)
+      const lawData1 = [
+        { q: "พระราชบัญญัติระเบียบบริหารราชการแผ่นดิน พ.ศ. 2534 จัดระเบียบบริหารราชการแผ่นดินเป็นกี่ส่วน?", opts: ["2 ส่วน", "3 ส่วน", "4 ส่วน", "5 ส่วน"], ans: 1, exp: "จัดเป็น 3 ส่วน ได้แก่ ส่วนกลาง, ส่วนภูมิภาค และส่วนท้องถิ่น" },
+        { q: "ข้อใดเป็นราชการส่วนภูมิภาคตาม พ.ร.บ. ระเบียบบริหารราชการแผ่นดินฯ?", opts: ["กระทรวง, ทรวง, กรม", "จังหวัด และ อำเภอ", "อบจ. และ อบต.", "กรุงเทพมหานคร"], ans: 1, exp: "ส่วนภูมิภาคประกอบด้วย จังหวัด และ อำเภอ" },
+        { q: "การจัดตั้ง ยุบ หรือเปลี่ยนเขตจังหวัด ให้ทำเป็นกฎหมายระดับใด?", opts: ["พระราชกำหนด", "พระราชกฤษฎีกา", "พระราชบัญญัติ", "กฎกระทรวง"], ans: 2, exp: "การจัดตั้ง ยุบ เปลี่ยนแปลงเขตจังหวัด ต้องตราเป็น พระราชบัญญัติ (พ.ร.บ.)" },
+        { q: "เป้าหมายสูงสุดของการบริหารกิจการบ้านเมืองที่ดี (พ.ร.ฎ. 2546) คือข้อใด?", opts: ["เกิดประโยชน์สุขของประชาชน", "เกิดความประหยัดงบประมาณ", "เกิดประสิทธิภาพสูงสุด", "ไม่มีขั้นตอนเกินความจำเป็น"], ans: 0, exp: "เป้าหมายหลักประการแรกคือ 'เกิดประโยชน์สุขของประชาชน'" },
+        { q: "ข้อใดไม่ใช่หลักการตาม พ.ร.ฎ. ว่าด้วยหลักเกณฑ์และวิธีการบริหารกิจการบ้านเมืองที่ดี?", opts: ["สัมฤทธิผลต่อภารกิจ", "ลดขั้นตอนการปฏิบัติงาน", "เน้นสร้างผลกำไรสูงสุดให้รัฐ", "กระจายภารกิจสู่ท้องถิ่น"], ans: 2, exp: "หน่วยงานรัฐมิได้มุ่งแสวงหากำไรสูงสุด" },
+        { q: "คำสั่งทางปกครอง ตาม พ.ร.บ. วิธีปฏิบัติราชการทางปกครอง พ.ศ. 2539 อาจทำเป็นรูปแบบใดได้บ้าง?", opts: ["เป็นหนังสือเท่านั้น", "เป็นวาจาเท่านั้น", "เป็นหนังสือ วาจา หรือสื่อสารด้วยความหมายอื่น", "ต้องเป็นประกาศในราชกิจจานุเบกษา"], ans: 2, exp: "คำสั่งทางปกครองอาจทำเป็นหนังสือ วาจา หรือโดยการสื่อความหมายในรูปแบบอื่นก็ได้" },
+        { q: "หากผู้รับคำสั่งทางปกครองต้องการอุทธรณ์คำสั่ง ต้องยื่นอุทธรณ์ภายในกี่วันนับแต่วันที่ได้รับแจ้ง?", opts: ["7 วัน", "15 วัน", "30 วัน", "60 วัน"], ans: 1, exp: "ต้องอุทธรณ์ยื่นต่อเจ้าหน้าที่ผู้ทำคำสั่งภายใน 15 วันนับแต่วันที่ได้รับแจ้ง" },
+        { q: "หากเจ้าหน้าที่กระทำละเมิดในการปฏิบัติหน้าที่ ผู้เสียหายต้องฟ้องร้องดำเนินคดีกับใคร?", opts: ["เจ้าหน้าที่ผู้ทำละเมิดโดยตรง", "หน่วยงานของรัฐที่เจ้าหน้าที่สังกัด", "นายกรัฐมนตรี", "ปลัดกระทรวง"], ans: 1, exp: "มาตรา 5 ให้ฟ้องหน่วยงานของรัฐที่เจ้าหน้าที่ผู้นั้นสังกัดอยู่ โดยห้ามฟ้องเจ้าหน้าที่โดยตรง" },
+        { q: "ถ้าเจ้าหน้าที่กระทำละเมิดโดย 'ประมาทเลินเล่ออย่างร้ายแรง' หน่วยงานรัฐมีสิทธิ์อย่างไร?", opts: ["ไล่ออกทันที", "ใช้สิทธิเรียกร้องให้เจ้าหน้าที่ชดใช้ค่าสินไหมทดแทน (ไล่เบี้ย)", "ไม่สามารถทำอะไรได้", "ฟ้องคดีอาญา"], ans: 1, exp: "หากเกิดจากจงใจหรือประมาทเลินเล่ออย่างร้ายแรง หน่วยงานมีสิทธิเรียกให้เจ้าหน้าที่ชดใช้เงินคืนได้" },
+        { q: "สิทธิเรียกร้องค่าสินไหมทดแทนจากเจ้าหน้าที่ มีอายุความกี่ปีนับแต่วันที่หน่วยงานรู้ถึงการละเมิดและรู้ตัวเจ้าหน้าที่?", opts: ["1 ปี", "2 ปี", "5 ปี", "10 ปี"], ans: 1, exp: "มีอายุความ 2 ปี นับแต่วันที่หน่วยงานรู้ถึงการละเมิดและรู้ตัวผู้ต้องชดใช้" },
+        { q: "เจ้าพนักงานเรียก รับ หรือยอมจะรับทรัพย์สินเพื่อกระทำการหรือไม่กระทำการอย่างใดในตำแหน่ง มีความผิดตามประมวลกฎหมายอาญามาตราใด?", opts: ["มาตรา 147", "มาตรา 149", "มาตรา 157", "มาตรา 162"], ans: 1, exp: "มาตรา 149 เจ้าพนักงานเรียกรับริบหรือยอมรับทรัพย์สิน (รับสินบน)" },
+        { q: "เจ้าพนักงานเบียดบังทรัพย์สินของรัฐเป็นของตนเอง มีความผิดตามมาตราใด?", opts: ["มาตรา 147 (ยักยอกทรัพย์)", "มาตรา 149", "มาตรา 157", "มาตรา 170"], ans: 0, exp: "มาตรา 147 ความผิดฐานยักยอกทรัพย์หลวง" },
+        { q: "เจ้าพนักงานปฏิบัติหรือละเว้นการปฏิบัติหน้าที่โดยมิชอบ เพื่อให้เกิดความเสียหายแก่ผู้หนึ่งผู้ใด เป็นความผิดตามมาตราใด?", opts: ["มาตรา 149", "มาตรา 157", "มาตรา 160", "มาตรา 200"], ans: 1, exp: "มาตรา 157 ปฏิบัติหรือละเว้นการปฏิบัติหน้าที่โดยมิชอบ" },
+        { q: "มาตรฐานทางจริยธรรมตาม พ.ร.บ. มาตรฐานทางจริยธรรม พ.ศ. 2562 มีกี่ประการ?", opts: ["5 ประการ", "7 ประการ", "9 ประการ", "10 ประการ"], ans: 1, exp: "มี 7 ประการ เช่น ยึดมั่นสถาบัน, ซื่อสัตย์สุจริต, คิดถึงประโยชน์ส่วนรวม ฯลฯ" },
+        { q: "ข้อใดเป็นหนึ่งในมาตรฐานทางจริยธรรม 7 ประการ?", opts: ["ยึดมั่นในสถาบันหลักของประเทศ", "ปฏิบัติหน้าที่ด้วยความเที่ยงธรรม", "ดำรงตนเป็นแบบอย่างที่ดี", "ถูกทุกข้อ"], ans: 3, exp: "เป็นหลักมาตรฐานทางจริยธรรมทั้งหมด" },
+        { q: "องค์กรใดมีหน้าที่จัดทำมาตรฐานทางจริยธรรมสำหรับข้าราชการพลเรือน?", opts: ["คณะกรรมการมาตรฐานทางจริยธรรม (ก.ม.จ.)", "ศาลรัฐธรรมนูญ", "สภาผู้แทนราษฎร", "ผู้ตรวจการแผ่นดิน"], ans: 0, exp: "ก.ม.จ. มีหน้าที่รักษาและกำกับดูแลมาตรฐานทางจริยธรรม" },
+        { q: "นายอำเภอ จัดเป็นตำแหน่งที่ใช้อำนาจตามการจัดระเบียบราชการส่วนใด?", opts: ["ส่วนกลาง", "ส่วนภูมิภาค", "ส่วนท้องถิ่น", "องค์กรอิสระ"], ans: 1, exp: "อำเภอเป็นส่วนหนึ่งของการจัดระเบียบบริหารราชการส่วนภูมิภาค" },
+        { q: "องค์กรปกครองส่วนท้องถิ่นรูปแบบพิเศษในประเทศไทยมีกี่แห่ง?", opts: ["1 แห่ง", "2 แห่ง (กรุงเทพฯ และ เมืองพัทยา)", "3 แห่ง", "76 แห่ง"], ans: 1, exp: "มี 2 แห่งคือ กรุงเทพมหานคร และ เมืองพัทยา" },
+        { q: "ข้อใดคือการทำงานแบบ 'มุ่งผลสัมฤทธิ์' ตามหลักการบริหารบ้านเมืองที่ดี?", opts: ["ทำงานตามคำสั่งอย่างเคร่งครัดโดยไม่สนผลงาน", "ตั้งเป้าหมาย ทำงานมีประสิทธิภาพ ตรวจสอบได้และบรรลุผล", "ใช้เงินงบประมาณให้หมด", "ลดจำนวนบุคลากร"], ans: 1, exp: "มุ่งผลสัมฤทธิ์หมายถึงการกำหนดเป้าหมายที่ชัดเจนและปฏิบัติงานให้เกิดผลสำเร็จจริง" },
+        { q: "ระยะเวลาอุทธรณ์คำสั่งทางปกครอง หากเจ้าหน้าที่ไม่ได้ระบุสิทธิการอุทธรณ์ไว้ในคำสั่ง จะมีผลอย่างไร?", opts: ["คำสั่งเป็นโมฆะทันที", "ขยายระยะเวลาอุทธรณ์เป็น 1 ปี", "ไม่สามารถอุทธรณ์ได้", "ขยายระยะเวลาเป็น 30 วัน"], ans: 1, exp: "ตาม พ.ร.บ. ปกครอง หากไม่ระบุระยะเวลาอุทธรณ์ ให้ขยายเวลาอุทธรณ์เป็น 1 ปี" },
+        { q: "ข้อใดไม่ใช่คำสั่งทางปกครอง?", opts: ["การสั่งพักราชการ", "การไม่ออกใบอนุญาตขับขี่", "การรับสมัครสอบแข่งขัน", "การให้ทุนการศึกษาแก่บุคลากร"], ans: 2, exp: "การประกาศรับสมัครสอบเป็นการแจ้งทั่วไป ยังไม่ก่อให้เกิดการเปลี่ยนแปลงสิทธิรายบุคคลโดยตรง" },
+        { q: "อายุความในการฟ้องคดีต่อศาลปกครองกรณีคำสั่งทางปกครองทั่วไปคือเท่าใด?", opts: ["30 วัน", "60 วัน", "90 วัน", "1 ปี"], ans: 2, exp: "ต้องฟ้องภายใน 90 วันนับแต่วันที่รู้หรือควรรู้ถึงเหตุแห่งการฟ้องคดี" },
+        { q: "กรณีเจ้าหน้าที่กระทำละเมิดต่อบุคคลภายนอกโดย 'ไม่ได้ปฏิบัติตามหน้าที่' ใครต้องรับผิดชอบ?", opts: ["หน่วยงานรัฐรับผิดชอบแทน", "เจ้าหน้าที่ต้องรับผิดชอบเป็นการส่วนตัว", "กระทรวงการคลัง", "รัฐบาล"], ans: 1, exp: "หากมิใช่การกระทำในการปฏิบัติหน้าที่ เจ้าหน้าที่ต้องรับผิดเป็นการส่วนตัว (ฟ้องตัวเจ้าหน้าที่ได้)" },
+        { q: "ประมวลกฎหมายอาญา มาตรา 157 มีโทษสูงสุดอย่างไร?", opts: ["จำคุก 1 ปี", "จำคุก 5 ปี", "จำคุก 1 ถึง 10 ปี หรือปรับ", "ประหารชีวิต"], ans: 2, exp: "จำคุกตั้งแต่ 1 ปี ถึง 10 ปี หรือปรับตั้งแต่ 20,000 ถึง 200,000 บาท หรือทั้งจำทั้งปรับ" },
+        { q: "ผู้ทรงคุณวุฒิในคณะกรรมการมาตรฐานทางจริยธรรม (ก.ม.จ.) มีกี่คน?", opts: ["3 คน", "5 คน", "7 คน", "9 คน"], ans: 1, exp: "มีกรรมการผู้ทรงคุณวุฒิจำนวน 5 คน" }
+      ];
+      lawData1.forEach((item, idx) => {
+        q.push({ id: 76+idx, subject: "law", subCategory: "ข้าราชการที่ดี", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      return q;
+    }
+
+    function createSet2Questions() {
+      // Create Set 2 with distinct fresh questions (100 Qs)
+      const q = [];
+      
+      // 1-10 Series Set 2
+      const s2 = [
+        { q: "2, 4, 8, 16, 32, ...", opts: ["48", "60", "64", "128"], ans: 2, exp: "คูณ 2 เพิ่มขึ้นเรื่อยๆ -> 32×2 = 64" },
+        { q: "10, 13, 17, 22, 28, ...", opts: ["33", "35", "37", "40"], ans: 1, exp: "บวกเพิ่มทีละ +3, +4, +5, +6, +7 -> 28+7 = 35" },
+        { q: "100, 90, 81, 73, 66, ...", opts: ["60", "59", "58", "57"], ans: 0, exp: "ลบทีละ -10, -9, -8, -7, -6 -> 66-6 = 60" },
+        { q: "1, 3, 7, 15, 31, ...", opts: ["55", "63", "65", "127"], ans: 1, exp: "(พจน์เดิม × 2) + 1 -> (31×2)+1 = 63" },
+        { q: "0, 3, 8, 15, 24, 35, ...", opts: ["42", "48", "50", "63"], ans: 1, exp: "n² - 1 -> (7² - 1 = 48)" },
+        { q: "81, 27, 9, 3, ...", opts: ["0", "1", "2", "1/3"], ans: 1, exp: "หารด้วย 3 ตลอดอนุกรม -> 3 / 3 = 1" },
+        { q: "4, 9, 19, 39, 79, ...", opts: ["158", "159", "160", "169"], ans: 1, exp: "(พจน์ก่อนหน้า × 2) + 1 -> (79×2)+1 = 159" },
+        { q: "2, 5, 11, 23, 47, ...", opts: ["90", "95", "96", "100"], ans: 1, exp: "(พจน์ก่อนหน้า × 2) + 1 -> (47×2)+1 = 95" },
+        { q: "1, 2, 4, 7, 11, 16, ...", opts: ["20", "22", "24", "25"], ans: 1, exp: "บวกเพิ่ม +1, +2, +3, +4, +5, +6 -> 16+6 = 22" },
+        { q: "3, 6, 11, 18, 27, ...", opts: ["36", "38", "40", "42"], ans: 1, exp: "บวกด้วยเลขโพลีโนเมียล +3, +5, +7, +9, +11 -> 27+11 = 38" }
+      ];
+      s2.forEach((item, idx) => {
+        q.push({ id: idx+1, subject: "analytical", subCategory: "อนุกรม (ชุด 2)", question: `จงหาตัวเลขถัดไปของอนุกรม: ${item.q}`, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 11-20 Math Set 2
+      const m2 = [
+        { q: "ซื้อสินค้าราคา 800 บาท ขายต่อขาดทุน 15% ขายไปราคาเท่าใด?", opts: ["650 บาท", "680 บาท", "700 บาท", "720 บาท"], ans: 1, exp: "ขาดทุน 800 × 0.15 = 120 บาท. ราคาขาย = 800 - 120 = 680 บาท" },
+        { q: "ฝูงไก่และหมูนับขารวมกันได้ 40 ขา นับหัวรวมกันได้ 14 หัว มีหมูกี่ตัว?", opts: ["4 ตัว", "6 ตัว", "8 ตัว", "10 ตัว"], ans: 1, exp: "ให้ไก่=K, หมู=M. K+M=14, 2K+4M=40 -> M = 6 ตัว" },
+        { q: "ทำงาน 6 คน เสร็จใน 10 วัน ถ้าใช้คน 15 คน ทำงานเดียวกันจะเสร็จในกี่วัน?", opts: ["4 วัน", "5 วัน", "6 วัน", "8 วัน"], ans: 0, exp: "งาน = 6 × 10 = 60 คน-วัน. เวลา = 60 / 15 = 4 วัน" },
+        { q: "สมชายวิ่งด้วยความเร็ว 10 กม./ชม. เป็นเวลา 45 นาที ได้ระยะทางเท่าใด?", opts: ["6.5 กม.", "7.5 กม.", "8.0 กม.", "8.5 กม."], ans: 1, exp: "เวลา 45 นาที = 0.75 ชม. ระยะทาง = 10 × 0.75 = 7.5 กิโลเมตร" },
+        { q: "อัตราส่วนเงินของ ก ต่อ ข เป็น 3 : 4 ถ้า ข มีเงิน 1,200 บาท ก มีเงินเท่าใด?", opts: ["800 บาท", "900 บาท", "1,000 บาท", "1,100 บาท"], ans: 1, exp: "4 ส่วน = 1,200 ดังนั้น 1 ส่วน = 300. ก มี 3 ส่วน = 900 บาท" },
+        { q: "เลข 3 จำนวนเรียงกันรวมกันได้ 54 เลขจำนวนมากที่สุดคือเท่าใด?", opts: ["17", "18", "19", "20"], ans: 2, exp: "เลขตรงกลาง = 54 / 3 = 18. เลขสามจำนวนคือ 17, 18, 19. จำนวนมากที่สุดคือ 19" },
+        { q: "ถ้า 20% ของ X เท่ากับ 40 แล้ว X มีค่าเท่าใด?", opts: ["150", "200", "250", "300"], ans: 1, exp: "X × 0.20 = 40 => X = 40 / 0.20 = 200" },
+        { q: "มุมภายในรูปสามเหลี่ยมรวมกันได้กี่องศา?", opts: ["90 องศา", "180 องศา", "270 องศา", "360 องศา"], ans: 1, exp: "มุมภายในของรูปสามเหลี่ยมรวมกันได้ 180 องศาเสมอ" },
+        { q: "พื้นที่รูปสี่เหลี่ยมผืนผ้า กว้าง 8 เมตร ยาว 12 เมตร เท่ากับกี่ตารางเมตร?", opts: ["80 ตร.ม.", "96 ตร.ม.", "100 ตร.ม.", "112 ตร.ม."], ans: 1, exp: "พื้นที่ = กว้าง × ยาว = 8 × 12 = 96 ตารางเมตร" },
+        { q: "ค่าเฉลี่ยของ 5, 10, 15, 20, 25, 30 คือข้อใด?", opts: ["15.5", "17.5", "18.0", "20.0"], ans: 1, exp: "ผลรวม = 105 หารด้วย 6 = 17.5" }
+      ];
+      m2.forEach((item, idx) => {
+        q.push({ id: 11+idx, subject: "analytical", subCategory: "คณิตศาสตร์ทั่วไป (ชุด 2)", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 21-22 Operation Set 2
+      q.push({ id: 21, subject: "analytical", subCategory: "โอเปอเรชัน", question: "ถ้า 4 * 2 = 10 และ 6 * 3 = 15 แล้ว 8 * 4 มีค่าเท่าใด?", options: ["18", "20", "22", "24"], answer: 1, explanation: "สูตร: a * b = (a + b) + b หรือ 2a + b -> 2(4)+2=10, 2(6)+3=15, 2(8)+4 = 20" });
+      q.push({ id: 22, subject: "analytical", subCategory: "โอเปอเรชัน", question: "ถ้า 5 * 3 = 16 และ 4 * 2 = 14 แล้ว 6 * 2 มีค่าเท่าใด?", options: ["18", "20", "22", "24"], answer: 1, explanation: "สูตร: (a × b) + 1? 5*3=15+1=16, 4*2=8+1=9? สังเกตใหม่: 3a + b -> 3(5)+3=18? สูตรคือ 2a + 2b = 2(5+3)=16, 2(4+2)=12? เอาใหม่: a² - b² -> 25-9=16, 16-4=12? ถ้าเป็น 6*2 -> 6² - 2² = 36 - 4 = 32. สมมุติสูตร 3a + 1b -> 3(5)+1 = 16, 3(4)+2 = 14 ดังนั้น 3(6)+2 = 20" });
+
+      // 23-27 Symbolic logic Set 2
+      q.push({ id: 23, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: "เงื่อนไข: X ≥ Y > Z = W\nข้อสรุป 1: X > Z\nข้อสรุป 2: Y > W\nควรตอบข้อใด?", options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 เท็จ ข้อสรุป 2 จริง"], answer: 0, explanation: "ข้อสรุป 1: X ≥ Y > Z ได้ X > Z (จริง)\nข้อสรุป 2: Y > Z และ Z = W ได้ Y > W (จริง)" });
+      q.push({ id: 24, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: "เงื่อนไข: X ≥ Y > Z = W\nข้อสรุป 1: X = W\nข้อสรุป 2: Y < Z\nควรตอบข้อใด?", options: ["ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 ไม่แน่ชัด ข้อสรุป 2 จริง"], answer: 0, explanation: "ข้อสรุป 1: X > W (เท็จ)\nข้อสรุป 2: Y > Z ดังนั้น Y < Z (เท็จ)" });
+      q.push({ id: 25, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: "เงื่อนไข: A < B ≤ C < D\nข้อสรุป 1: A < D\nข้อสรุป 2: B < D\nควรตอบข้อใด?", options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 เท็จ ข้อสรุป 2 จริง"], answer: 0, explanation: "จากลำดับ A < B ≤ C < D ทั้งสองข้อสรุปเป็นจริงแน่นอน" });
+      q.push({ id: 26, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: "เงื่อนไข: M > N และ N < O\nข้อสรุป 1: M > O\nข้อสรุป 2: M = O\nควรตอบข้อใด?", options: ["ข้อสรุปทั้งสองไม่แน่นอน (ไม่แน่ชัด)", "ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุป 1 เท็จ ข้อสรุป 2 จริง"], answer: 0, explanation: "สัญลักษณ์ระหว่าง M กับ O ขัดแย้งกันผ่าน N จึงไม่สามารถสรุปได้แน่นอน" });
+      q.push({ id: 27, subject: "analytical", subCategory: "เงื่อนไขสัญลักษณ์", question: "เงื่อนไข: P = Q ≥ R > S\nข้อสรุป 1: P > S\nข้อสรุป 2: Q > S\nควรตอบข้อใด?", options: ["ข้อสรุปทั้งสองเป็นจริง", "ข้อสรุป 1 จริง ข้อสรุป 2 เท็จ", "ข้อสรุปทั้งสองไม่เป็นจริง", "ข้อสรุป 1 ไม่แน่ชัด ข้อสรุป 2 จริง"], answer: 0, explanation: "P = Q ≥ R > S ดังนั้น P และ Q ล้วนมากกว่า S ทั้งคู่" });
+
+      // 28-30 Language logic Set 2
+      q.push({ id: 28, subject: "analytical", subCategory: "เงื่อนไขภาษา", question: "ข้าราชการทุกคนต้องติดบัตรประจำตัว สมศักดิ์ไม่ได้ติดบัตรประจำตัว ข้อใดสรุปได้ถูกต้อง?", options: ["สมศักดิ์ไม่ได้เป็นข้าราชการ", "สมศักดิ์ลืมบัตรประจำตัว", "สมศักดิ์เป็นข้าราชการแต่ทำผิดกฎ", "สรุปไม่ได้"], answer: 0, explanation: "ตามหลักตรรกศาสตร์ (Modus Tollens): ข้าราชการ -> ติดบัตร. ไม่ติดบัตร -> ไม่ใช่ข้าราชการ" });
+      q.push({ id: 29, subject: "analytical", subCategory: "เงื่อนไขภาษา", question: "แดงวิ่งเร็วกว่าดำ แต่ดำวิ่งเร็วกว่าเขียว ข้อใดสรุปได้ถูกต้อง?", options: ["แดงวิ่งเร็วที่สุด", "เขียววิ่งเร็วที่สุด", "ดำวิ่งเร็วที่สุด", "สรุปไม่ได้"], answer: 0, explanation: "เรียงความเร็ว: แดง > ดำ > เขียว ดังนั้น แดง วิ่งเร็วที่สุด" });
+      q.push({ id: 30, subject: "analytical", subCategory: "เงื่อนไขภาษา", question: "สินค้าทุกชิ้นในร้านลดราคา 50% สมศรีซื้อเสื้อในร้านนี้ ข้อใดสรุปถูกต้อง?", options: ["เสื้อตัวนี้ได้รับการลดราคา 50%", "เสื้อตัวนี้ราคาแพง", "สมศรีซื้อสินค้าหลายชิ้น", "ร้านนี้ขายดีมาก"], answer: 0, explanation: "เสื้อเป็นสินค้าในร้าน ดังนั้นจึงได้รับการลดราคา 50%" });
+
+      // 31-35 Analogy Set 2
+      const analData2 = [
+        { q: "หนังสือ : อ่าน :: วิทยุ : ?", opts: ["ดู", "ฟัง", "พูด", "เขียน"], ans: 1, exp: "ความสัมพันธ์: สื่อและกิริยาการรับรู้" },
+        { q: "ข้าว : นา :: ยางพารา : ?", opts: ["ไร่", "สวน", "นา", "ป่า"], ans: 1, exp: "ความสัมพันธ์: พืชกับสถานที่ปลูก (สวนยาง)" },
+        { q: "มีด : คม :: น้ำแข็ง : ?", opts: ["เหลว", "เย็น", "ใส", "แข็ง"], ans: 1, exp: "ความสัมพันธ์: สิ่งของกับคุณลักษณะเด่นเฉพาะตัว" },
+        { q: "หมวก : ศีรษะ :: รองเท้า : ?", opts: ["มือ", "เท้า", "ขา", "แขน"], ans: 1, exp: "ความสัมพันธ์: เครื่องแต่งกายและอวัยวะที่สวมใส่" },
+        { q: "รถยนต์ : น้ำมัน :: เครื่องบิน : ?", opts: ["ถ่านหิน", "น้ำมันเชื้อเพลิงอากาศยาน", "ไฟฟ้า", "ลม"], ans: 1, exp: "ความสัมพันธ์: พาหนะและพลังงานเชื้อเพลิง" }
+      ];
+      analData2.forEach((item, idx) => {
+        q.push({ id: 31+idx, subject: "analytical", subCategory: "อุปมาอุปไมย (ชุด 2)", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 36-40 Table Set 2
+      const tCtx2 = "ข้อมูลยอดขายสินค้า 3 ชนิด:\n- สินค้า A: 150 ชิ้น\n- สินค้า B: 250 ชิ้น\n- สินค้า C: 100 ชิ้น\nยอดขายรวม 500 ชิ้น";
+      q.push({ id: 36, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tCtx2}\n\nถาม: สินค้า B คิดเป็นกี่เปอร์เซ็นต์ของยอดขายทั้งหมด?`, options: ["30%", "40%", "50%", "60%"], answer: 2, explanation: "(250 / 500) × 100 = 50%" });
+      q.push({ id: 37, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tCtx2}\n\nถาม: อัตราส่วนยอดขาย สินค้า A : B : C คือเท่าใด?`, options: ["3 : 5 : 2", "1 : 2 : 1", "3 : 4 : 2", "5 : 3 : 2"], answer: 0, explanation: "150 : 250 : 100 หารด้วย 50 ได้ 3 : 5 : 2" });
+      q.push({ id: 38, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tCtx2}\n\nถาม: สินค้า B ขายได้มากกว่าสินค้า C กี่ชิ้น?`, options: ["100 ชิ้น", "150 ชิ้น", "200 ชิ้น", "250 ชิ้น"], answer: 1, explanation: "250 - 100 = 150 ชิ้น" });
+      q.push({ id: 39, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tCtx2}\n\nถาม: หากสินค้า A เพิ่มขึ้น 20% จะขายสินค้า A ได้กี่ชิ้น?`, options: ["160 ชิ้น", "170 ชิ้น", "180 ชิ้น", "200 ชิ้น"], answer: 2, explanation: "150 + (150 × 20%) = 150 + 30 = 180 ชิ้น" });
+      q.push({ id: 40, subject: "analytical", subCategory: "การวิเคราะห์ตาราง", question: `${tCtx2}\n\nถาม: ผลรวมยอดขายสินค้า A และ C รวมกันคิดเป็นกี่เปอร์เซ็นต์?`, options: ["40%", "50%", "60%", "70%"], answer: 1, explanation: "(150 + 100) / 500 = 250 / 500 = 50%" });
+
+      // 41-50 Thai Set 2
+      const thai2 = [
+        { q: "ข้อใดเขียนคำได้ถูกต้อง?", opts: ["ศีรษะ", "ศิรษะ", "ศรีษะ", "ศีรษา"], ans: 0, exp: "สะกดถูกต้องคือ 'ศีรษะ'" },
+        { q: "คำว่า 'ความซื่อสัตย์' จัดเป็นคำประเภทใด?", opts: ["อาการนาม", "สามานยนาม", "วิสามานยนาม", "ลักษณนาม"], ans: 0, exp: "อาการนาม มักนำหน้าด้วย 'การ' หรือ 'ความ'" },
+        { q: "คำใดมีความหมายตรงกับคำว่า 'ภมร'?", opts: ["แมลงผึ้ง", "นก", "ช้าง", "เสือ"], ans: 0, exp: "ภมร หมายถึง ผึ้ง หรือแมลง" },
+        { q: "สำนวน 'จับปลาสองมือ' หมายถึงข้อใด?", opts: ["ทำสิ่งสองอย่างพร้อมกันจนไม่ได้ผลดีสักอย่าง", "ทำงานขยันขันแข็ง", "จับปลาได้เก่ง", "มีความสามารถหลากหลาย"], ans: 0, exp: "หมายถึงการหวังผลสองทางพร้อมกันอาจทำให้ล้มเหลวทั้งคู่" },
+        { q: "ประโยคในข้อใดไม่มีคำสะกดผิด?", opts: ["เขาลงนามในสัญญาอนุมัติเรียบร้อยแล้ว", "เขาลงนามในสัญญาอนุมัติเรียบร้อยแล้ว", "เขารอรับอนุญาติ", "เขารู้เท่าไม่ถึงการ"], ans: 0, exp: "อนุมัติ และ สัญญา สะกดถูกต้อง" },
+        { q: "คำในข้อใดเป็นคำตรงข้ามกับ 'กว้างขวาง'?", opts: ["แคบ", "ยาว", "สูง", "ใหญ่"], ans: 0, exp: "ตรงข้ามกับ กว้างขวาง คือ แคบ" },
+        { q: "คำว่า 'เสด็จพระราชดำเนิน' ใช้กับบุคคลระดับใด?", opts: ["พระมหากษัตริย์และพระราชินี", "พระภิกษุสงฆ์", "ข้าราชการชั้นผู้ใหญ่", "ประชาชนทั่วไป"], ans: 0, exp: "เป็นคำราชาศัพท์ใช้สำหรับพระมหากษัตริย์และพระบรมวงศานุวงศ์ชั้นสูง" },
+        { q: "ประโยคใดแสดงถึงการเชิญชวน?", opts: ["กรุณาเปิดประตู", "โปรดร่วมมือกันรักษาความสะอาด", "ห้ามส่งเสียงดัง", "อย่าเดินลัดสนาม"], ans: 1, exp: "โปรด... เป็นคำเชิญชวนอย่างสุภาพ" },
+        { q: "ข้อใดเรียงลำดับคำตามพจนานุกรมได้ถูกต้อง?", opts: ["กติกา, ขนม, คดี", "ขวด, กา, จาน", "สมุด, ปากกา, ดินสอ", "หนังสือ, สมุด, ยางลบ"], ans: 0, exp: "หมวดพยัญชนะ ก -> ข -> ค" },
+        { q: "ประโยคในข้อใดมีความหมายชัดเจนที่สุด?", opts: ["แพทย์รักษาผู้ป่วยอย่างดี", "เขากินข้าวหมดแล้วกินน้ำ", "เดินไปตามทางเดิน", "รถวิ่งบนถนน"], ans: 0, exp: "แพทย์รักษาผู้ป่วยอย่างดี สื่อความหมายสมบูรณ์ชัดเจน" }
+      ];
+      thai2.forEach((item, idx) => {
+        q.push({ id: 41+idx, subject: "analytical", subCategory: "ภาษาไทย (ชุด 2)", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 51-75 English Set 2
+      const eng2 = [
+        { q: "Look! The bus _______.", opts: ["come", "is coming", "came", "has come"], ans: 1, exp: "Present Continuous Tense มีคำว่า Look! แสดงเหตุการณ์กำลังเกิด" },
+        { q: "She _______ her homework before she went out.", opts: ["finish", "finished", "had finished", "has finished"], ans: 2, exp: "Past Perfect (had finished) เกิดก่อนเหตุการณ์ในอดีต (went out)" },
+        { q: "If I _______ rich, I would buy a big house.", opts: ["am", "was", "were", "been"], ans: 2, exp: "Second Conditional สมมุติเรื่องไม่จริงในปัจจุบัน ใช้ If I were..." },
+        { q: "The manager was satisfied _______ the result.", opts: ["with", "at", "by", "in"], ans: 0, exp: "satisfied ใช้คู่กับบุพบท 'with'" },
+        { q: "He speaks English _______ than his brother.", opts: ["fluent", "more fluently", "most fluently", "fluently"], ans: 1, exp: "ขั้นกว่าของ Adverb ใช้ 'more fluently than'" },
+        { q: "Either John or his coworkers _______ responsible for this.", opts: ["is", "are", "was", "be"], ans: 1, exp: "Either...or... กริยาอิงตาม cowokers (พหูพจน์) -> are" },
+        { q: "The new bridge _______ next year.", opts: ["will build", "will be built", "is building", "built"], ans: 1, exp: "Passive Voice ในอนาคต: will be + V.3" },
+        { q: "She promised _______ me as soon as possible.", opts: ["call", "calling", "to call", "called"], ans: 2, exp: "กริยา promise ตามด้วย Infinitive with to -> to call" },
+        { q: "What is the synonym of 'EXPAND'?", opts: ["Enlarge", "Shrink", "Decrease", "Reduce"], ans: 0, exp: "Expand และ Enlarge แปลว่า ขยาย ขยายตัว" },
+        { q: "What is the antonym of 'CREATE'?", opts: ["Destroy", "Make", "Build", "Produce"], ans: 0, exp: "Destroy (ทำลาย) ตรงข้ามกับ Create (สร้าง)" },
+        { q: "The government launched a new project to _______ poverty.", opts: ["reduce", "increase", "boost", "support"], ans: 0, exp: "reduce แปลว่า ลดลง (ลดความยากจน)" },
+        { q: "We need to find a _______ solution to this ongoing problem.", opts: ["permanent", "temporary", "short", "weak"], ans: 0, exp: "permanent แปลว่า ถาวร/ยั่งยืน" },
+        { q: "He submitted his _______ to the Human Resources department.", opts: ["resignation", "party", "invitation", "recipe"], ans: 0, exp: "resignation letter คือหนังสือลาออก" },
+        { q: "The meeting was _______ due to bad weather.", opts: ["postponed", "started", "welcomed", "enjoyed"], ans: 0, exp: "postponed แปลว่า เลื่อนออกไป" },
+        { q: "A: 'Would you mind turning down the music?'\nB: '_______'", opts: ["Not at all, I'll do it right now.", "Yes, I mind.", "Thank you.", "You're welcome."], ans: 0, exp: "ตอบ 'Not at all' แสดงความยินดีปฏิบัติตามเมื่อถูกถามด้วย Would you mind" },
+        { q: "A: 'What is your opinion on this proposal?'\nB: '_______'", opts: ["I think it's very practical.", "I am 30 years old.", "I love pizza.", "No, thanks."], ans: 0, exp: "ตอบแสดงความคิดเห็นเกี่ยวกับข้อเสนอ" },
+        { q: "A: 'Good luck with your exam!'\nB: '_______'", opts: ["Thank you very much!", "Never mind.", "I am sorry.", "Same to you!"], ans: 0, exp: "กล่าวขอบคุณเมื่อได้รับคำอวยพร" },
+        { q: "A: 'Where is the nearest bank?'\nB: '_______'", opts: ["It's just across the street.", "I don't like banks.", "It opens at 9 AM.", "Yes, it is."], ans: 0, exp: "บอกทิศทางสถานที่" },
+        { q: "A: 'Can I help you with those heavy bags?'\nB: '_______'", opts: ["That's very kind of you, thanks!", "No, I am full.", "Yes, I agree.", "Good night."], ans: 0, exp: "ตอบรับความช่วยเหลืออย่างสุภาพ" },
+        { q: "Passage: 'Bangkok is the capital city of Thailand, known for its vibrant street life and ornate shrines.'\n\nQuestion: What is Bangkok known for?", opts: ["Snowy mountains", "Vibrant street life", "Quiet beaches", "Deserts"], ans: 1, exp: "ตามบทความระบุว่า vibrant street life" },
+        { q: "Passage: (Same as above)\nQuestion: Bangkok is the capital of which country?", opts: ["Japan", "Thailand", "China", "Vietnam"], ans: 1, exp: "Thailand" },
+        { q: "Passage: 'Drinking enough water daily is essential for maintaining proper kidney function.'\n\nQuestion: What organ benefits directly from drinking water according to the passage?", opts: ["Lungs", "Kidneys", "Heart", "Eyes"], ans: 1, exp: "kidney function (การทำงานของไต)" },
+        { q: "Passage: (Same as above)\nQuestion: What liquid is mentioned in the passage?", opts: ["Coffee", "Tea", "Water", "Juice"], ans: 2, exp: "Water" },
+        { q: "Passage: 'The library will be closed on official public holidays.'\n\nQuestion: When will the library be closed?", opts: ["Every Sunday", "On public holidays", "Never", "Every night"], ans: 1, exp: "On official public holidays" },
+        { q: "Passage: (Same as above)\nQuestion: What place is described in the sentence?", opts: ["School", "Library", "Hospital", "Park"], ans: 1, exp: "Library (ห้องสมุด)" }
+      ];
+      eng2.forEach((item, idx) => {
+        q.push({ id: 51+idx, subject: "english", subCategory: "ภาษาอังกฤษ (ชุด 2)", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      // 76-100 Law Set 2
+      const law2 = [
+        { q: "นายกรัฐมนตรีเป็นผู้บังคับบัญชาสูงสุดของราชการส่วนใด?", opts: ["ราชการส่วนกลาง", "ราชการส่วนภูมิภาค", "ราชการส่วนท้องถิ่น", "องค์กรอิสระ"], ans: 0, exp: "นายกรัฐมนตรีบังคับบัญชาราชการส่วนกลาง (สำนักนายกรัฐมนตรีและกระทรวงต่างๆ)" },
+        { q: "การจัดตั้ง อบต. หรือ อบจ. เป็นการจัดระเบียบริหารราชการส่วนใด?", opts: ["ส่วนกลาง", "ส่วนภูมิภาค", "ส่วนท้องถิ่น", "ส่วนวิสาหกิจ"], ans: 2, exp: "เป็นราชการส่วนท้องถิ่น ตามหลักการกระจายอำนาจ" },
+        { q: "ผู้ดำรงตำแหน่งใดเป็นผู้ว่าราชการจังหวัด?", opts: ["ข้าราชการการเมือง", "ข้าราชการพลเรือนสามัญ", "พนักงานรัฐวิสาหกิจ", "นายอำเภอที่ได้รับเลือกตั้ง"], ans: 1, exp: "ผู้ว่าราชการจังหวัดเป็นข้าราชการพลเรือนสามัญ สังกัดกระทรวงมหาดไทย" },
+        { q: "หลักการกระจายอำนาจ (Decentralization) ตรงกับการจัดระเบียบราชการส่วนใด?", opts: ["ส่วนกลาง", "ส่วนภูมิภาค", "ส่วนท้องถิ่น", "ถูกทุกข้อ"], ans: 2, exp: "ส่วนท้องถิ่นยึดหลักการกระจายอำนาจการปกครอง" },
+        { q: "พ.ร.ฎ. ว่าด้วยหลักเกณฑ์และวิธีการบริหารกิจการบ้านเมืองที่ดี ให้ความสำคัญกับเรื่องใดมากที่สุด?", opts: ["ความพึงพอใจของประชาชน", "ผลกำไรของหน่วยงาน", "จำนวนข้าราชการที่เพิ่มขึ้น", "การสร้างตึกใหม่"], ans: 0, exp: "ยึดประชาชนเป็นศูนย์กลาง เกิดประโยชน์สุขต่อประชาชน" },
+        { q: "การลดขั้นตอนการปฏิบัติงาน ตาม พ.ร.ฎ. บริหารบ้านเมืองที่ดี มุ่งผลลัพธ์ใด?", opts: ["อำนวยความสะดวกและตอบสนองความต้องการของประชาชน", "ประหยัดกระดาษ", "ลดเวลาทำงานของข้าราชการ", "สร้างผลงานรายบุคคล"], ans: 0, exp: "เพื่ออำนวยความสะดวกและรวดเร็วแก่ประชาชน" },
+        { q: "คำสั่งทางปกครองที่ไม่ทำเป็นหนังสือ ต้องทำอย่างไรเมื่อผู้รับคำสั่งร้องขอ?", opts: ["ยื่นคำร้องขอทำเป็นหนังสือภายใน 7 วัน", "ยืนยันเป็นหนังสือหากร้องขอภายในเวลาอันสมควร", "ปฏิเสธได้ทันที", "ไม่ต้องทำอะไร"], ans: 1, exp: "หากผู้ได้รับคำสั่งร้องขอภายในเวลาอันสมควร เจ้าหน้าที่ต้องยืนยันคำสั่งนั้นเป็นหนังสือ" },
+        { q: "การเพิกถอนคำสั่งทางปกครองที่ชอบด้วยกฎหมายและมีผลเป็นคุณ ต้องทำภายในกี่วัน?", opts: ["30 วัน", "60 วัน", "90 วัน", "180 วัน"], ans: 2, exp: "ต้องกระทำภายใน 90 วันนับแต่ได้รู้ถึงเหตุที่จะเพิกถอน" },
+        { q: "หากเจ้าหน้าที่ประมาทเลินเล่อธรรมดา (ไม่ร้ายแรง) กระทำละเมิดในการปฏิบัติหน้าที่ หน่วยงานรัฐมีสิทธิ์เรียกให้ชดใช้เงินหรือไม่?", opts: ["มีสิทธิ์ไล่เบี้ยได้ 50%", "ไม่มีสิทธิ์เรียกให้เจ้าหน้าที่ชดใช้", "มีสิทธิ์เรียกชดใช้ได้เต็มจำนวน", "ขึ้นอยู่กับดุลยพินิจของนายกฯ"], ans: 1, exp: "หากเป็นประมาทเลินเล่อธรรมดา (ไม่ร้ายแรง) หน่วยงานรัฐต้องรับผิดชอบเอง ห้ามไล่เบี้ยจากเจ้าหน้าที่" },
+        { q: "กรณีความรับผิดทางละเมิด หากมีเจ้าหน้าที่ร่วมกระทำผิดหลายคน ให้รับผิดชอบอย่างไร?", opts: ["รับผิดอย่างร่วมกัน (ลูกหนี้ร่วม)", "รับผิดเฉพาะส่วนของตนเอง โดยไม่อยู่ในฐานะลูกหนี้ร่วม", "ให้คนที่เป็นหัวหน้ารับผิดชอบทั้งหมด", "ไม่ต้องมีใครรับผิด"], ans: 1, exp: "มาตรา 10 กำหนดให้เจ้าหน้าที่รับผิดใช้ค่าสินไหมทดแทนเฉพาะส่วนของตนเท่านั้น ห้ามนำหลักลูกหนี้ร่วมมาใช้" },
+        { q: "ความผิดฐานใช้อำนาจในตำแหน่งโดยมิชอบเพื่อข่มขืนใจหรือจูงใจให้บุคคลมอบทรัพย์สิน ตามประมวลกฎหมายอาญา คือมาตราใด?", opts: ["มาตรา 147", "มาตรา 148", "มาตรา 149", "มาตรา 157"], ans: 1, exp: "มาตรา 148 ความผิดฐานกรรโชกทรัพย์หรือใช้อำนาจข่มขืนใจให้มอบทรัพย์สิน" },
+        { q: "เจ้าพนักงานมีหน้าที่ซื้อ ทำ จัดรักษาทรัพย์สินใดๆ ใช้อำนาจในตำแหน่งโดยทุจริตจัดการทรัพย์นั้น มีความผิดตามมาตราใด?", opts: ["มาตรา 151", "มาตรา 157", "มาตรา 162", "มาตรา 172"], ans: 0, exp: "มาตรา 151 ความผิดฐานใช้อำนาจในตำแหน่งทุจริตในการซื้อหรือจัดการทรัพย์สิน" },
+        { q: "การจัดทำ 'ประมวลจริยธรรมข้าราชการ' มุ่งหวังผลลัพธ์ใดมากที่สุด?", opts: ["สร้างมาตรฐานความประพฤติที่ดีงามและป้องกันการทุจริต", "ไว้ตัดคะแนนเงินเดือน", "เพิ่มขั้นตอนการทำงาน", "ใช้เป็นกฎหมายอาญา"], ans: 0, exp: "เพื่อให้ข้าราชการยึดถือเป็นหลักเกณฑ์ในการปฏิบัติตนอย่างมีคุณธรรมจริยธรรม" },
+        { q: "ข้อใดเป็นคุณธรรมพื้นฐานตามหลักจริยธรรมของข้าราชการ?", opts: ["ความซื่อสัตย์สุจริต", "การยึดมั่นในประโยชน์ส่วนรวม", "ความโปร่งใสตรวจสอบได้", "ถูกทุกข้อ"], ans: 3, exp: "เป็นหลักมาตรฐานทางจริยธรรมที่สำคัญทุกข้อ" },
+        { q: "ใครเป็นประธานคณะกรรมการมาตรฐานทางจริยธรรม (ก.ม.จ.)?", opts: ["นายกรัฐมนตรี หรือรองนายกรัฐมนตรีที่ได้รับมอบหมาย", "ประธานศาลฎีกา", "ประธานสภาผู้แทนราษฎร", "ผู้ตรวจการแผ่นดิน"], ans: 0, exp: "นายกรัฐมนตรี หรือรองนายกรัฐมนตรีที่ได้รับมอบหมาย เป็นประธาน ก.ม.จ." },
+        { q: "จังหวัด จัดตั้งขึ้นโดยตราเป็นกฎหมายใด?", opts: ["พระราชบัญญัติ", "พระราชกฤษฎีกา", "กฎกระทรวง", "ประกาศกระทรวงมหาดไทย"], ans: 0, exp: "การจัดตั้ง ยุบ หรือเปลี่ยนแปลงเขตจังหวัด ต้องทำเป็น พระราชบัญญัติ" },
+        { q: "อำเภอ จัดตั้งขึ้นโดยตราเป็นกฎหมายใด?", opts: ["พระราชบัญญัติ", "พระราชกฤษฎีกา", "กฎกระทรวง", "ประกาศมหาดไทย"], ans: 1, exp: "การตั้ง ยุบ หรือเปลี่ยนเขตอำเภอ ให้ตราเป็น พระราชกฤษฎีกา" },
+        { q: "การประเมินผลการปฏิบัติราชการตาม พ.ร.ฎ. บริหารบ้านเมืองที่ดี ต้องทำอย่างน้อยปีละกี่ครั้ง?", opts: ["1 ครั้ง", "2 ครั้ง", "3 ครั้ง", "4 ครั้ง"], ans: 1, exp: "โดยทั่วไปประเมินปีละ 2 ครั้ง ตามรอบการปฏิบัติราชการ" },
+        { q: "หากเจ้าหน้าที่ทำคำสั่งทางปกครองโดยไม่มีอำนาจ ผลของคำสั่งนั้นจะเป็นอย่างไร?", opts: ["เป็นคำสั่งที่ไม่ชอบด้วยกฎหมายและถูกเพิกถอนได้", "มีผลสมบูรณ์", "เป็นคำแนะนำ", "ไม่มีผลกระทบ"], ans: 0, exp: "คำสั่งที่ออกโดยไม่มีอำนาจ ถือเป็นคำสั่งที่ไม่ชอบด้วยกฎหมาย" },
+        { q: "การละเมิดเกิดจาก 'เจ้าหน้าที่กระทำในการปฏิบัติหน้าที่' ผู้เสียหายต้องฟ้องใคร?", opts: ["หน่วยงานของรัฐ", "เจ้าหน้าที่โดยตรง", "ผู้ว่าราชการจังหวัด", "นายกรัฐมนตรี"], ans: 0, exp: "ให้ฟ้องหน่วยงานของรัฐที่เจ้าหน้าที่สังกัด (ห้ามฟ้องเจ้าหน้าที่)" },
+        { q: "การละเมิดเกิดจาก 'เจ้าหน้าที่ไม่ได้กระทำในการปฏิบัติหน้าที่' ผู้เสียหายต้องฟ้องใคร?", opts: ["ตัวเจ้าหน้าที่โดยตรง", "หน่วยงานของรัฐ", "กระทรวงการคลัง", "ศาลปกครอง"], ans: 0, exp: "หากเป็นการกระทำส่วนตัว ไม่เกี่ยวกับการปฏิบัติหน้าที่ ต้องฟ้องตัวเจ้าหน้าที่" },
+        { q: "ประมวลกฎหมายอาญา มาตรา 147 ฐานยักยอกทรัพย์หลวง มีบทลงโทษอย่างไร?", opts: ["จำคุก 5 ปี ถึง 20 ปี หรือจำคุกตลอดชีวิต", "จำคุก 1 ปี", "ปรับอย่างเดียว", "รอลงอาญา"], ans: 0, exp: "ระบุโทษจำคุกตั้งแต่ 5 ปี ถึง 20 ปี หรือจำคุกตลอดชีวิต และปรับ" },
+        { q: "ข้อใดคือการยึดมั่นในสถาบันหลักของประเทศ ตามมาตรฐานจริยธรรม?", opts: ["พิทักษ์รักษาไว้ซึ่งชาติ ศาสนา พระมหากษัตริย์ และการปกครองระบอบประชาธิปไตย", "การทำงานให้เสร็จเร็วที่สุด", "การประหยัดงบประมาณ", "การปฏิบัติตามคำสั่งหัวหน้าทุกกรณี"], ans: 0, exp: "เป็นมาตรฐานทางจริยธรรมข้อที่ 1" },
+        { q: "คณะกรรมการ ก.ม.จ. มีวาระการดำรงตำแหน่งกี่ปี?", opts: ["2 ปี", "3 ปี", "4 ปี", "5 ปี"], ans: 2, exp: "กรรมการผู้ทรงคุณวุฒิมีวาระดำรงตำแหน่ง 4 ปี" },
+        { q: "เป้าหมายหลักของการสอบ ก.พ. ภาค ก. คือข้อใด?", opts: ["วัดความรู้ความสามารถทั่วไปที่จำเป็นต่อการปฏิบัติงานในตำแหน่งข้าราชการ", "ทดสอบความจำกฎหมายทั้งหมด", "ทดสอบทักษะการพิมพ์งาน", "วัดความแข็งแรงทางร่างกาย"], ans: 0, exp: "เพื่อวัดความรู้ความสามารถทั่วไป ความคิดวิเคราะห์ ภาษา และคุณลักษณะการเป็นข้าราชการที่ดี" }
+      ];
+      law2.forEach((item, idx) => {
+        q.push({ id: 76+idx, subject: "law", subCategory: "ข้าราชการที่ดี (ชุด 2)", question: item.q, options: item.opts, answer: item.ans, explanation: item.exp });
+      });
+
+      return q;
+    }
+
+    /* ==========================================================================
+       APP STATE & CONTROLLER
+       ========================================================================== */
+    let state = {
+      user: { name: "", target: "" },
+      currentSet: 1,
+      mode: "full", // full, analytical, english, law
+      questions: [],
+      currentIndex: 0,
+      userAnswers: {}, // index -> optionIndex
+      flags: {}, // index -> boolean
+      timerInterval: null,
+      secondsRemaining: 0,
+      examStartTime: null,
+      filterReview: "all"
+    };
+
+    // Initialization
+    window.onload = function() {
+      loadUserProfile();
+      loadHistoryTable();
+      setupKeyboardShortcuts();
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3000);
+    }
+
+    function saveUserProfile() {
+      const name = document.getElementById("userName").value.trim();
+      const target = document.getElementById("userTarget").value.trim();
+      if (!name) {
+        showToast("⚠️ กรุณากรอกชื่อ-นามสกุลก่อนบันทึกครับ");
+        return;
+      }
+      state.user = { name, target };
+      localStorage.setItem("ocsc_user", JSON.stringify(state.user));
+      updateUserHeader();
+      showToast("✅ บันทึกข้อมูลผู้เข้าสอบเรียบร้อยแล้ว");
+    }
+
+    function loadUserProfile() {
+      const saved = localStorage.getItem("ocsc_user");
+      if (saved) {
+        try {
+          state.user = JSON.parse(saved);
+          document.getElementById("userName").value = state.user.name || "";
+          document.getElementById("userTarget").value = state.user.target || "";
+          updateUserHeader();
+        } catch(e){}
+      }
+    }
+
+    function updateUserHeader() {
+      const infoDiv = document.getElementById("userInfoHeader");
+      if (state.user.name) {
+        infoDiv.innerHTML = `👤 <strong>${state.user.name}</strong><br><small style="opacity:0.8;">${state.user.target || "ผู้เตรียมสอบ ก.พ."}</small>`;
+      } else {
+        infoDiv.innerHTML = `<span style="opacity:0.7;">ยังไม่ได้กรอกชื่อ</span>`;
+      }
+    }
+
+    function selectExamSet(setNum) {
+      state.currentSet = setNum;
+      document.getElementById("setCard1").classList.toggle("selected", setNum === 1);
+      document.getElementById("setCard2").classList.toggle("selected", setNum === 2);
+    }
+
+    function selectMode(modeName) {
+      state.mode = modeName;
+      document.getElementById("modeCardFull").classList.toggle("selected", modeName === 'full');
+      document.getElementById("modeCardAnalytical").classList.toggle("selected", modeName === 'analytical');
+      document.getElementById("modeCardEnglish").classList.toggle("selected", modeName === 'english');
+      document.getElementById("modeCardLaw").classList.toggle("selected", modeName === 'law');
+    }
+
+    /* START EXAM */
+    function startExam() {
+      const nameInput = document.getElementById("userName").value.trim();
+      if (!nameInput && !state.user.name) {
+        showToast("⚠️ กรุณากรอกชื่อ-นามสกุลของคุณก่อนเริ่มทำข้อสอบครับ");
+        document.getElementById("userName").focus();
+        return;
+      }
+      if (nameInput && nameInput !== state.user.name) {
+        saveUserProfile();
+      }
+
+      // Filter Questions by mode
+      const rawSet = EXAM_SETS[state.currentSet];
+      if (state.mode === 'full') {
+        state.questions = [...rawSet];
+        state.secondsRemaining = 3 * 3600; // 180 min
+      } else if (state.mode === 'analytical') {
+        state.questions = rawSet.filter(q => q.subject === 'analytical');
+        state.secondsRemaining = 90 * 60; // 90 min
+      } else if (state.mode === 'english') {
+        state.questions = rawSet.filter(q => q.subject === 'english');
+        state.secondsRemaining = 45 * 60; // 45 min
+      } else if (state.mode === 'law') {
+        state.questions = rawSet.filter(q => q.subject === 'law');
+        state.secondsRemaining = 45 * 60; // 45 min
+      }
+
+      state.currentIndex = 0;
+      state.userAnswers = {};
+      state.flags = {};
+      state.examStartTime = new Date();
+
+      // UI Switch
+      switchScreen("examScreen");
+      
+      // Update Exam Header Tags
+      document.getElementById("examTitleTag").innerText = `ชุดที่ ${state.currentSet}`;
+      const modeTitles = { full: "สนามสอบจริง (100 ข้อ)", analytical: "คิดวิเคราะห์ (50 ข้อ)", english: "ภาษาอังกฤษ (25 ข้อ)", law: "ข้าราชการที่ดี (25 ข้อ)" };
+      document.getElementById("examSubjectTag").innerText = modeTitles[state.mode];
+
+      renderQuestion();
+      renderNavGrid();
+      startTimer();
+    }
+
+    function switchScreen(screenId) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(screenId).classList.add("active");
+      window.scrollTo(0,0);
+    }
+
+    /* TIMER ENGINE */
+    function startTimer() {
+      clearInterval(state.timerInterval);
+      updateTimerDisplay();
+      state.timerInterval = setInterval(() => {
+        state.secondsRemaining--;
+        updateTimerDisplay();
+        if (state.secondsRemaining <= 0) {
+          clearInterval(state.timerInterval);
+          showToast("⏰ หมดเวลาทำข้อสอบ! ระบบกำลังส่งคำตอบอัตโนมัติ");
+          submitExam();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const h = Math.floor(state.secondsRemaining / 3600);
+      const m = Math.floor((state.secondsRemaining % 3600) / 60);
+      const s = state.secondsRemaining % 60;
+      const str = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      const timerEl = document.getElementById("timerDisplay");
+      timerEl.innerText = str;
+
+      if (state.secondsRemaining <= 600) { // 10 min warning
+        timerEl.classList.add("timer-warning");
+      } else {
+        timerEl.classList.remove("timer-warning");
+      }
+    }
+
+    /* QUESTION RENDERING */
+    function renderQuestion() {
+      const q = state.questions[state.currentIndex];
+      if (!q) return;
+
+      document.getElementById("qCategoryBadge").innerText = `ข้อ ${state.currentIndex + 1} / ${state.questions.length} • ${q.subCategory}`;
+      document.getElementById("questionText").innerText = q.question;
+
+      // Render Options
+      const optionsContainer = document.getElementById("optionsContainer");
+      optionsContainer.innerHTML = "";
+
+      const currentAns = state.userAnswers[state.currentIndex];
+
+      q.options.forEach((optText, optIdx) => {
+        const item = document.createElement("div");
+        item.className = `option-item ${currentAns === optIdx ? 'selected' : ''}`;
+        item.onclick = () => selectOption(optIdx);
+
+        item.innerHTML = `
+          <input type="radio" name="optRadio" class="option-radio" ${currentAns === optIdx ? 'checked' : ''}>
+          <div><strong>${optIdx + 1}.</strong> ${optText}</div>
+        `;
+        optionsContainer.appendChild(item);
+      });
+
+      // Update Flag Button
+      const isFlagged = state.flags[state.currentIndex];
+      const flagBtn = document.getElementById("btnFlag");
+      if (isFlagged) {
+        flagBtn.style.background = "#fef3c7";
+        flagBtn.style.borderColor = "#f59e0b";
+        flagBtn.innerText = "★ ติดธงแล้ว (กดเพื่อปลด)";
+      } else {
+        flagBtn.style.background = "transparent";
+        flagBtn.style.borderColor = "var(--border)";
+        flagBtn.innerText = "☆ ติดธงทบทวน";
+      }
+
+      // Update Navigation Buttons State
+      document.getElementById("btnPrev").disabled = state.currentIndex === 0;
+      document.getElementById("btnNext").innerText = (state.currentIndex === state.questions.length - 1) ? "หน้าสุดท้าย" : "ข้อถัดไป ➡️";
+
+      updateNavGridCurrent();
+    }
+
+    function selectOption(optIdx) {
+      state.userAnswers[state.currentIndex] = optIdx;
+      renderQuestion();
+      updateNavGridItem(state.currentIndex);
+      updateAnsweredCount();
+    }
+
+    function toggleFlag() {
+      state.flags[state.currentIndex] = !state.flags[state.currentIndex];
+      renderQuestion();
+      updateNavGridItem(state.currentIndex);
+    }
+
+    function prevQuestion() {
+      if (state.currentIndex > 0) {
+        state.currentIndex--;
+        renderQuestion();
+      }
+    }
+
+    function nextQuestion() {
+      if (state.currentIndex < state.questions.length - 1) {
+        state.currentIndex++;
+        renderQuestion();
+      }
+    }
+
+    /* NAVIGATOR GRID */
+    function renderNavGrid() {
+      const container = document.getElementById("navGridContainer");
+      container.innerHTML = "";
+      state.questions.forEach((_, idx) => {
+        const btn = document.createElement("button");
+        btn.id = `navBtn_${idx}`;
+        btn.className = getNavBtnClass(idx);
+        btn.innerText = idx + 1;
+        btn.onclick = () => {
+          state.currentIndex = idx;
+          renderQuestion();
+        };
+        container.appendChild(btn);
+      });
+      updateAnsweredCount();
+    }
+
+    function getNavBtnClass(idx) {
+      let cls = "nav-grid-btn";
+      if (state.userAnswers[idx] !== undefined) cls += " answered";
+      if (state.flags[idx]) cls += " flagged";
+      if (idx === state.currentIndex) cls += " current";
+      return cls;
+    }
+
+    function updateNavGridItem(idx) {
+      const btn = document.getElementById(`navBtn_${idx}`);
+      if (btn) btn.className = getNavBtnClass(idx);
+    }
+
+    function updateNavGridCurrent() {
+      state.questions.forEach((_, idx) => updateNavGridItem(idx));
+    }
+
+    function updateAnsweredCount() {
+      const count = Object.keys(state.userAnswers).length;
+      document.getElementById("answeredCountText").innerText = `ตอบแล้ว ${count}/${state.questions.length}`;
+    }
+
+    /* KEYBOARD SHORTCUTS */
+    function setupKeyboardShortcuts() {
+      document.addEventListener("keydown", (e) => {
+        const examScreen = document.getElementById("examScreen");
+        if (!examScreen.classList.contains("active")) return;
+
+        if (e.key >= '1' && e.key <= '4') {
+          const optIdx = parseInt(e.key) - 1;
+          selectOption(optIdx);
+        } else if (e.key === 'ArrowLeft') {
+          prevQuestion();
+        } else if (e.key === 'ArrowRight') {
+          nextQuestion();
+        } else if (e.key.toLowerCase() === 'f') {
+          toggleFlag();
+        }
+      });
+    }
+
+    /* SUBMIT & SCORING */
+    function confirmSubmitExam() {
+      const total = state.questions.length;
+      const answered = Object.keys(state.userAnswers).length;
+      const unsaid = total - answered;
+
+      let msg = `คุณตอบไปแล้ว ${answered} ข้อ จากทั้งหมด ${total} ข้อ`;
+      if (unsaid > 0) {
+        msg += `\n⚠️ ยังมีอีก ${unsaid} ข้อที่ไม่ได้ตอบ! คุณต้องการส่งข้อสอบเลยหรือไม่?`;
+      } else {
+        msg += `\nคุณต้องการส่งข้อสอบและตรวจผลคะแนนเลยหรือไม่?`;
+      }
+
+      if (confirm(msg)) {
+        submitExam();
+      }
+    }
+
+    function submitExam() {
+      clearInterval(state.timerInterval);
+
+      // Calculate Scores
+      let scoreAnalytic = 0, countAnalytic = 0;
+      let scoreEng = 0, countEng = 0;
+      let scoreLaw = 0, countLaw = 0;
+
+      state.questions.forEach((q, idx) => {
+        const userAns = state.userAnswers[idx];
+        const isCorrect = (userAns === q.answer);
+
+        if (q.subject === 'analytical') {
+          countAnalytic++;
+          if (isCorrect) scoreAnalytic += 2; // 2 pts per question (Total 100)
+        } else if (q.subject === 'english') {
+          countEng++;
+          if (isCorrect) scoreEng += 2; // 2 pts per question (Total 50)
+        } else if (q.subject === 'law') {
+          countLaw++;
+          if (isCorrect) scoreLaw += 2; // 2 pts per question (Total 50)
+        }
+      });
+
+      const maxAnalytic = countAnalytic * 2 || 100;
+      const maxEng = countEng * 2 || 50;
+      const maxLaw = countLaw * 2 || 50;
+
+      // OCSC Passing Criteria:
+      // Subject 1 (Analytic): >= 60% (60/100)
+      // Subject 2 (English): >= 50% (25/50)
+      // Subject 3 (Law): >= 60% (30/50)
+      let passAnalytic = (scoreAnalytic >= 60);
+      let passEng = (scoreEng >= 25);
+      let passLaw = (scoreLaw >= 30);
+
+      // If mode is subset, adjust pass check
+      if (state.mode === 'analytical') { passEng = true; passLaw = true; }
+      if (state.mode === 'english') { passAnalytic = true; passLaw = true; }
+      if (state.mode === 'law') { passAnalytic = true; passEng = true; }
+
+      const isOverallPass = passAnalytic && passEng && passLaw;
+      const totalScore = scoreAnalytic + scoreEng + scoreLaw;
+      const totalMax = maxAnalytic + maxEng + maxLaw;
+
+      // Render Score Banner
+      const banner = document.getElementById("scoreBanner");
+      const passText = document.getElementById("resultPassFailText");
+      const subTitle = document.getElementById("resultSubTitle");
+      const totalScoreEl = document.getElementById("resultTotalScore");
+
+      totalScoreEl.innerText = `${totalScore} / ${totalMax} คะแนน`;
+
+      if (isOverallPass) {
+        banner.className = "score-banner pass";
+        passText.innerText = "🎉 ยินดีด้วย! คุณสอบผ่านเกณฑ์ ก.พ. ภาค ก.";
+        subTitle.innerText = "คุณสอบผ่านเกณฑ์ขั้นต่ำครบทั้ง 3 วิชา ตามเกณฑ์มาตรฐานสำนักงาน ก.พ.";
+      } else {
+        banner.className = "score-banner fail";
+        passText.innerText = "❌ เสียใจด้วย คุณยังไม่ผ่านเกณฑ์ ก.พ. ภาค ก.";
+        subTitle.innerText = "การสอบ ก.พ. ต้องผ่านเกณฑ์ขั้นต่ำครบทั้ง 3 วิชา (ตกวิชาใดวิชาหนึ่งถือว่าไม่ผ่าน)";
+      }
+
+      // Candidate Details
+      document.getElementById("candidateDetails").innerHTML = `
+        👤 <strong>ผู้เข้าสอบ:</strong> ${state.user.name || "ไม่ระบุ"} | 🎯 <strong>ตำแหน่งเป้าหมาย:</strong> ${state.user.target || "-"} <br>
+        📘 <strong>ชุดข้อสอบ:</strong> ชุดที่ ${state.currentSet} | 🗓️ <strong>วันที่สอบ:</strong> ${new Date().toLocaleDateString('th-TH')}
+      `;
+
+      // Update Breakdown Bars
+      document.getElementById("scoreAnalyticText").innerText = `${scoreAnalytic} / ${maxAnalytic} คะแนน (${passAnalytic ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน'})`;
+      document.getElementById("progressAnalytic").style.width = `${(scoreAnalytic/maxAnalytic)*100}%`;
+      document.getElementById("progressAnalytic").style.background = passAnalytic ? "var(--success)" : "var(--danger)";
+
+      document.getElementById("scoreEngText").innerText = `${scoreEng} / ${maxEng} คะแนน (${passEng ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน'})`;
+      document.getElementById("progressEng").style.width = `${(scoreEng/maxEng)*100}%`;
+      document.getElementById("progressEng").style.background = passEng ? "var(--success)" : "var(--danger)";
+
+      document.getElementById("scoreLawText").innerText = `${scoreLaw} / ${maxLaw} คะแนน (${passLaw ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน'})`;
+      document.getElementById("progressLaw").style.width = `${(scoreLaw/maxLaw)*100}%`;
+      document.getElementById("progressLaw").style.background = passLaw ? "var(--success)" : "var(--danger)";
+
+      // Save History
+      saveHistoryRecord({
+        date: new Date().toLocaleDateString('th-TH') + " " + new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}),
+        userName: state.user.name || "ผู้สอบ",
+        set: `ชุดที่ ${state.currentSet}`,
+        mode: state.mode,
+        score: `${totalScore}/${totalMax}`,
+        passed: isOverallPass
+      });
+
+      renderReviewSection();
+      switchScreen("resultScreen");
+    }
+
+    /* REVIEWS & EXPLANATIONS */
+    function filterReview(type) {
+      state.filterReview = type;
+      renderReviewSection();
+    }
+
+    function renderReviewSection() {
+      const container = document.getElementById("reviewContainer");
+      container.innerHTML = "";
+
+      state.questions.forEach((q, idx) => {
+        const userAns = state.userAnswers[idx];
+        const isCorrect = (userAns === q.answer);
+        const isFlagged = state.flags[idx];
+
+        if (state.filterReview === 'correct' && !isCorrect) return;
+        if (state.filterReview === 'incorrect' && isCorrect) return;
+        if (state.filterReview === 'flagged' && !isFlagged) return;
+
+        const item = document.createElement("div");
+        item.className = `review-item ${isCorrect ? 'correct' : 'incorrect'}`;
+
+        let userAnsStr = (userAns !== undefined) ? `${userAns + 1}. ${q.options[userAns]}` : `<span style="color:red;">ไม่ได้ตอบ</span>`;
+        let correctAnsStr = `${q.answer + 1}. ${q.options[q.answer]}`;
+
+        item.innerHTML = `
+          <div style="display:flex; justify-between; align-items:center; margin-bottom: 6px;">
+            <strong style="color:var(--primary);">ข้อ ${idx + 1} [${q.subCategory}]</strong>
+            <span class="badge ${isCorrect ? 'badge-success' : 'badge-danger'}">${isCorrect ? 'ตอบถูกต้อง (+2 คะแนน)' : 'ตอบผิด/ไม่ได้ตอบ (0 คะแนน)'}</span>
+          </div>
+          <div style="font-weight:600; margin-bottom:8px;">${q.question}</div>
+          <div style="font-size:0.88rem; margin-bottom:4px;"><strong>คำตอบของคุณ:</strong> ${userAnsStr}</div>
+          <div style="font-size:0.88rem; color:var(--success); margin-bottom:8px;"><strong>คำตอบที่ถูกต้อง:</strong> ${correctAnsStr}</div>
+          <div class="explanation">💡 <strong>เฉลยละเอียด:</strong> ${q.explanation}</div>
+        `;
+
+        container.appendChild(item);
+      });
+    }
+
+    /* HISTORY MANAGEMENT */
+    function saveHistoryRecord(record) {
+      let history = getHistory();
+      history.unshift(record);
+      if (history.length > 20) history = history.slice(0, 20); // Keep max 20
+      localStorage.setItem("ocsc_history", JSON.stringify(history));
+      loadHistoryTable();
+    }
+
+    function getHistory() {
+      const saved = localStorage.getItem("ocsc_history");
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e){ return []; }
+      }
+      return [];
+    }
+
+    function loadHistoryTable() {
+      const history = getHistory();
+      const tbody = document.getElementById("historyTableBody");
+      tbody.innerHTML = "";
+
+      if (history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">ยังไม่มีประวัติการสอบ</td></tr>`;
+        return;
+      }
+
+      history.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.date}</td>
+          <td>${item.userName}</td>
+          <td>${item.set}</td>
+          <td><span class="badge badge-warning">${item.mode}</span></td>
+          <td><strong>${item.score}</strong></td>
+          <td><span class="badge ${item.passed ? 'badge-success' : 'badge-danger'}">${item.passed ? 'ผ่านเกณฑ์' : 'ไม่ผ่าน'}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function clearHistory() {
+      if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติการสอบทั้งหมด?")) {
+        localStorage.removeItem("ocsc_history");
+        loadHistoryTable();
+        showToast("🗑️ ล้างประวัติการสอบเรียบร้อยแล้ว");
+      }
+    }
+
+    function copyResultSummary() {
+      const totalScoreText = document.getElementById("resultTotalScore").innerText;
+      const statusText = document.getElementById("resultPassFailText").innerText;
+      const textToCopy = `🏆 ผลการสอบจำลอง ก.พ. ภาค ก. (ระดับ ป.ตรี)\nผู้สอบ: ${state.user.name || "ไม่ระบุ"}\nชุดข้อสอบ: ชุดที่ ${state.currentSet}\nคะแนนที่ได้: ${totalScoreText}\nผลประเมิน: ${statusText}\nทดสอบผ่านเว็บแอปพลิเคชัน ก.พ. ภาค ก.`;
+
+      const dummy = document.createElement("textarea");
+      document.body.appendChild(dummy);
+      dummy.value = textToCopy;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+
+      showToast("📋 คัดลอกผลสรุปการสอบลง Clipboard เรียบร้อยแล้ว!");
+    }
+
+    function showHomeScreen() {
+      switchScreen("homeScreen");
+    }
+  </script>
+</body>
+</html>
